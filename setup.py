@@ -14,6 +14,6 @@ setup(
     ],
     entry_points="""
         [console_scripts]
-        lambdautil=lambdautil.command:cli
+        lambdatool=lambdatool.command:cli
     """
 )
