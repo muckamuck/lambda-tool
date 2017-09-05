@@ -10,6 +10,15 @@ import boto3
 import logging
 import sys
 
+fresh_notes = '''
+A skeleton of the new lambda, {}, has been created.
+
+In {}/{}/config you will find a config.ini file that you should
+fill in with parameters for your own account.
+
+Develop the lambda function as needed then you can deploy it with:
+lambdatool deploy.
+'''
 
 @click.group()
 @click.version_option(version='0.0.0')
@@ -23,7 +32,7 @@ def cli():
 def new(directory, name):
     command_line = {}
     command_line['name'] = name
-    command_line['module_directory'] = lambdatool.__path__
+    command_line['module_directory'] = lambdatool.__path__[0]
 
     if directory:
         command_line['directory'] = directory
@@ -40,6 +49,11 @@ def start_new_lambda(command_line):
     tool = lambdatool.LambdaUtility(command_line)
     if tool.create_make_lambda():
         logging.info('create_new_lambda() went well')
+        print(fresh_notes.format(
+            command_line['name'],
+            command_line['directory'],
+            command_line['name'])
+        )
     else:
         logging.erro('create_new_lambda() did note go well')
         sys.exit(1)

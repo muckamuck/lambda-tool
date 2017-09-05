@@ -1,6 +1,7 @@
 import logging
 import traceback
 import sys
+from shutil import copytree
 
 logging.basicConfig(level=logging.INFO,
                     format='[%(levelname)s] %(asctime)s (%(module)s) %(message)s',
@@ -48,8 +49,19 @@ class LambdaUtility:
             False if the lambda is not created for some odd reason
         """
         try:
-            logging.info('create called: {}'.format(True))
             logging.info(self._config)
+            source_directory = '{}/template/lambda'.format(self._config['module_directory'])
+            destination_directory = '{}/{}'.format(self._config['directory'], self._config['name'])
+            logging.info('     source_directory: {}'.format(source_directory))
+            logging.info('destination_directory: {}'.format(destination_directory))
+
+            copytree(
+                source_directory,
+                destination_directory,
+                symlinks=False,
+                ignore=None
+            )
+
             return True
         except Exception as x:
             logging.error('Exception caught in create_make_lambda(): {}'.format(x))
