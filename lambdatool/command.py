@@ -2,7 +2,6 @@
 The command line interface to stackility.
 
 Major help from: https://www.youtube.com/watch?v=kNke39OZ2k0
-from lambdatool import LambdaUtility
 """
 import lambdatool
 import click
@@ -20,6 +19,7 @@ Develop the lambda function as needed then you can deploy it with:
 lambdatool deploy.
 '''
 
+
 @click.group()
 @click.version_option(version='0.0.0')
 def cli():
@@ -32,7 +32,7 @@ def cli():
 def new(directory, name):
     command_line = {}
     command_line['name'] = name
-    command_line['module_directory'] = lambdatool.__path__[0]
+    command_line['template_directory'] = '{}/template'.format(lambdatool.__path__[0])
 
     if directory:
         command_line['directory'] = directory
@@ -47,7 +47,7 @@ def new(directory, name):
 
 def start_new_lambda(command_line):
     tool = lambdatool.LambdaUtility(command_line)
-    if tool.create_make_lambda():
+    if tool.create_lambda():
         logging.info('create_new_lambda() went well')
         print(fresh_notes.format(
             command_line['name'],

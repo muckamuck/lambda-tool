@@ -37,7 +37,7 @@ class LambdaUtility:
             logging.error('config block was garbage')
             raise SystemError
 
-    def create_make_lambda(self):
+    def create_lambda(self):
         """
         Write the template for a new lambda to the indicated target directory.
 
@@ -50,13 +50,12 @@ class LambdaUtility:
         """
         try:
             logging.info(self._config)
-            source_directory = '{}/template/lambda'.format(self._config['module_directory'])
             destination_directory = '{}/{}'.format(self._config['directory'], self._config['name'])
-            logging.info('     source_directory: {}'.format(source_directory))
+            logging.info('     source_directory: {}'.format(self._config['template_directory']))
             logging.info('destination_directory: {}'.format(destination_directory))
 
             copytree(
-                source_directory,
+                self._config['template_directory'],
                 destination_directory,
                 symlinks=False,
                 ignore=None
@@ -64,6 +63,6 @@ class LambdaUtility:
 
             return True
         except Exception as x:
-            logging.error('Exception caught in create_make_lambda(): {}'.format(x))
+            logging.error('Exception caught in create_lambda(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return False
