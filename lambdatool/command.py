@@ -67,7 +67,11 @@ def deploy(directory):
 
 
 def start_new_lambda(command_line):
-    tool = LambdaCreator(command_line)
+    try:
+        tool = LambdaCreator(command_line)
+    except Exception:
+        sys.exit(1)
+
     if tool.create_lambda():
         logging.info('create_new_lambda() went well')
         print(fresh_notes.format(
@@ -81,7 +85,11 @@ def start_new_lambda(command_line):
 
 
 def deploy_lambda(command_line):
-    tool = LambdaDeployer(command_line)
+    try:
+        tool = LambdaDeployer(command_line)
+    except Exception:
+        sys.exit(1)
+
     if tool.deploy_lambda():
         logging.info('deploy_lambda() went well')
     else:
