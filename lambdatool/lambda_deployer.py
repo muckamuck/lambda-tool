@@ -15,6 +15,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 DEFAULT_MODULE_FILE = 'main.py'
 IGNORED_STUFF = ('config', '.git')
+PIP_COMMAND = 'pip install -q -Ur requirements.txt -t .'
 
 
 class LambdaDeployer:
@@ -63,14 +64,6 @@ class LambdaDeployer:
         try:
             logging.info(self._config)
 
-            '''
-            if self.make_work_dir():
-                logging.error('make work directory successful: {}'.format(self._config['work_directory']))
-            else:
-                logging.error('failed to make work directory: {}'.format(self._config['work_directory']))
-                return False
-            '''
-
             lambda_name = self.find_lambda_name()
             if not self.verify_module_file():
                 logging.error('module file {} not found, exiting'.format(DEFAULT_MODULE_FILE))
@@ -85,14 +78,27 @@ class LambdaDeployer:
 
             if self.copy_stuff():
                 logging.info('copy_stuff() to scratch directory successful')
+                os.chdir(self._config['work_directory'])
             else:
                 logging.error('copy_stuff() to scratch directory failed')
+                return False
+
+            if self.install_requirements():
+                logging.info('install_requirements() to scratch directory successful')
+            else:
+                logging.error('install_requirements() to scratch directory failed')
+                return False
 
             return True
         except Exception as x:
             logging.error('Exception caught in deploy_lambda(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return False
+
+    def install_requirements(self):
+        command = PIP_COMMAND.split()
+        exit_status, stdout_text, stderr_text = self.execute_command(command)
+        return exit_status == 0
 
     def copy_stuff(self):
         try:
@@ -102,16 +108,6 @@ class LambdaDeployer:
                 ignore=shutil.ignore_patterns(*IGNORED_STUFF)
             )
 
-            return True
-        except Exception as miserable_failure:
-            logging.error('Exception caught in make_work_dir(): {}'.format(miserable_failure))
-            traceback.print_exc(file=sys.stdout)
-            return False
-
-    def make_work_dir(self):
-        try:
-            logging.info('making work directory: {}'.format(self._config['work_directory']))
-            os.mkdir(self._config['work_directory'])
             return True
         except Exception as miserable_failure:
             logging.error('Exception caught in make_work_dir(): {}'.format(miserable_failure))
@@ -144,15 +140,23 @@ class LambdaDeployer:
         return lambda_name
 
     def execute_command(self, command):
-        buf = ""
+        stdout_buf = str()
+        stderr_buf = str()
         try:
             p = subprocess.Popen(command, stdout=subprocess.PIPE)
             out, err = p.communicate()
-            for c in out:
-                buf = buf + c
-            return p.returncode, buf
+
+            if out:
+                for c in out:
+                    stdout_buf = stdout_buf + c
+
+            if err:
+                for c in err:
+                    stderr_buf = stderr_buf + c
+
+            return p.returncode, stdout_buf, stderr_buf
         except subprocess.CalledProcessError as x:
             logging.error('Exception caught in create_lambda(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return False
-            return x.returncode, None
+            return x.returncode, None, None
