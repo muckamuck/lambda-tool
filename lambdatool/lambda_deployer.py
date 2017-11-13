@@ -5,8 +5,12 @@ import os
 import git
 import sys
 import uuid
+import json
 import shutil
 import zipfile
+import utility #noqa
+import ConfigParser
+
 try:
     import zlib #noqa
     compression = zipfile.ZIP_DEFLATED
@@ -34,6 +38,7 @@ class LambdaDeployer:
     Lambda utility is yet another tool create and deploy AWS lambda functions
     """
     _config = None
+    _ini_data = None
 
     def __init__(self, config_block):
         """
@@ -81,9 +86,15 @@ class LambdaDeployer:
             logging.info(self._config)
 
             lambda_name = self.find_lambda_name()
-            if not self.verify_module_file():
+            if not self.verify_lambda_directory():
                 logging.error('module file {} not found, exiting'.format(DEFAULT_MODULE_FILE))
                 return False
+
+            if not self.read_config_info():
+                logging.error('failed to read config/config.ini file, exiting'.format(DEFAULT_MODULE_FILE))
+                return False
+            else:
+                logging.info('INI stuff: {}'.format(json.dumps(self._ini_data, indent=2)))
 
             commit_hash = self.find_commit()
             if commit_hash:
@@ -111,9 +122,28 @@ class LambdaDeployer:
                 logging.info('create_zip() failed to create {}'.format(self._config['package_name']))
                 return False
 
+            if self.upload_package():
+                logging.info('upload_package() uploaded {}'.format(self._config['package_name']))
+            else:
+                logging.info('upload_package() failed to upload {}'.format(self._config['package_name']))
+                return False
+
             return True
         except Exception as x:
             logging.error('Exception caught in deploy_lambda(): {}'.format(x))
+            traceback.print_exc(file=sys.stdout)
+            return False
+
+    def upload_package(self):
+        try:
+            key = 'lambda-code/{}/{}.zip'.format(
+                self._config['lambda_name'],
+                self._config['hash']
+            )
+            logging.info('key: {}'.format(key))
+            return True
+        except Exception as wtf:
+            logging.error('Exception caught in upload_package(): {}'.format(wtf))
             traceback.print_exc(file=sys.stdout)
             return False
 
@@ -147,7 +177,8 @@ class LambdaDeployer:
 
         return hash
 
-    def verify_module_file(self):
+    def verify_lambda_directory(self):
+
         return os.path.isfile(DEFAULT_MODULE_FILE)
 
     def find_lambda_name(self):
@@ -156,6 +187,7 @@ class LambdaDeployer:
             cwd = os.getcwd()
             dirs = cwd.split('/')
             lambda_name = dirs[-1]
+            self._config['lambda_name'] = lambda_name
             logging.info('lambda_name: {}'.format(lambda_name))
         except Exception as x:
             logging.error('Exception caught in deploy_lambda(): {}'.format(x))
@@ -220,3 +252,21 @@ class LambdaDeployer:
                 zf.close()
             except Exception:
                 pass
+
+    def read_config_info(self):
+        try:
+            ini_file = 'config/config.ini'
+            config = ConfigParser.ConfigParser()
+            config.read(ini_file)
+            the_stuff = {}
+            for section in config.sections():
+                the_stuff[section] = {}
+                for option in config.options(section):
+                    the_stuff[section][option] = config.get(section, option)
+
+            self._ini_data = the_stuff
+            return the_stuff
+        except Exception as wtf:
+            logging.error('Exception caught in read_config_info(): {}'.format(wtf))
+            traceback.print_exc(file=sys.stdout)
+            return None
