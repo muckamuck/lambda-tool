@@ -6,6 +6,12 @@ import git
 import sys
 import uuid
 import shutil
+import zipfile
+try:
+    import zlib #noqa
+    compression = zipfile.ZIP_DEFLATED
+except:
+    compression = zipfile.ZIP_STORED
 
 logging.basicConfig(level=logging.INFO,
                     format='[%(levelname)s] %(asctime)s (%(module)s) %(message)s',
@@ -16,6 +22,11 @@ logging.getLogger().setLevel(logging.INFO)
 DEFAULT_MODULE_FILE = 'main.py'
 IGNORED_STUFF = ('config', '.git')
 PIP_COMMAND = 'pip install -q -Ur requirements.txt -t .'
+
+ZIP_MODES = {
+    zipfile.ZIP_DEFLATED: 'deflated',
+    zipfile.ZIP_STORED:   'stored'
+}
 
 
 class LambdaDeployer:
@@ -41,6 +52,11 @@ class LambdaDeployer:
         """
         if config_block:
             self._config = config_block
+
+            if not os.path.isdir(self._config['work_directory']):
+                logging.error('{} does not exist'.format(self._config['work_directory']))
+                raise SystemError
+
             tmp_name = (str(uuid.uuid4()))[:8]
             self._config['work_directory'] = '{}/{}'.format(
                 self._config['work_directory'],
@@ -71,7 +87,7 @@ class LambdaDeployer:
 
             commit_hash = self.find_commit()
             if commit_hash:
-                logging.info('deploying version/commit {} of {}'.format(commit_hash[:8], lambda_name))
+                logging.info('deploying version/commit {} of {}'.format(commit_hash, lambda_name))
             else:
                 logging.error('git repo required, exiting!')
                 return False
@@ -87,6 +103,12 @@ class LambdaDeployer:
                 logging.info('install_requirements() to scratch directory successful')
             else:
                 logging.error('install_requirements() to scratch directory failed')
+                return False
+
+            if self.create_zip():
+                logging.info('create_zip() created {}'.format(self._config['package_name']))
+            else:
+                logging.info('create_zip() failed to create {}'.format(self._config['package_name']))
                 return False
 
             return True
@@ -118,6 +140,8 @@ class LambdaDeployer:
         try:
             repo = git.Repo(search_parent_directories=False)
             hash = repo.head.object.hexsha
+            hash = hash[:8]
+            self._config['hash'] = hash
         except Exception:
             hash = None
 
@@ -158,5 +182,41 @@ class LambdaDeployer:
         except subprocess.CalledProcessError as x:
             logging.error('Exception caught in create_lambda(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
-            return False
             return x.returncode, None, None
+
+    def find_data(self, the_dir):
+        tree = []
+        try:
+            for folder, subs, files in os.walk(the_dir):
+                for file in files:
+                    tree.append('{}/{}'.format(folder, file))
+        except Exception:
+            pass
+
+        return tree
+
+    def create_zip(self):
+        zf = None
+        try:
+            logging.info('adding files with compression mode={}'.format(ZIP_MODES[compression]))
+            package_name = '{}/{}.zip'.format(
+                self._config['work_directory'],
+                self._config['hash']
+            )
+
+            self._config['package_name'] = package_name
+
+            zf = zipfile.ZipFile(package_name, mode='w')
+            for f in self.find_data('.'):
+                zf.write(f, compress_type=compression)
+
+            return True
+        except Exception as x:
+            logging.error('Exception caught in create_zip(): {}'.format(x))
+            traceback.print_exc(file=sys.stdout)
+            return False
+        finally:
+            try:
+                zf.close()
+            except Exception:
+                pass
