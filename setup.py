@@ -28,6 +28,7 @@ setup(
     package_data={'lambdatool': find_data('lambdatool', 'template')},
     install_requires=[
         'boto3>=1.4.3',
+        'GitPython>=2.1.7',
         'Click>=6.7',
         'PyYAML>=3.12',
         'pymongo>=3.4.0'
