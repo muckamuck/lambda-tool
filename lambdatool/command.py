@@ -12,6 +12,7 @@ import logging
 import sys
 import json
 
+default_stage = 'dev'
 fresh_notes = '''
 A skeleton of the new lambda, {}, has been created.
 
@@ -50,13 +51,19 @@ def new(directory, name):
 
 @cli.command()
 @click.option('-d', '--directory')
-def deploy(directory):
+@click.option('-s', '--stage')
+def deploy(directory, stage):
     command_line = {}
 
     if directory:
         command_line['work_directory'] = directory
     else:
         command_line['work_directory'] = '/tmp'
+
+    if stage:
+        command_line['stage'] = stage
+    else:
+        command_line['stage'] = default_stage
 
     logging.info('command_line: {}'.format(json.dumps(command_line, indent=2)))
 
@@ -80,7 +87,7 @@ def start_new_lambda(command_line):
             command_line['name'])
         )
     else:
-        logging.error('create_new_lambda() did note go well')
+        logging.error('create_new_lambda() did not go well')
         sys.exit(1)
 
 
@@ -93,7 +100,7 @@ def deploy_lambda(command_line):
     if tool.deploy_lambda():
         logging.info('deploy_lambda() went well')
     else:
-        logging.error('deploy_lambda() did note go well')
+        logging.error('deploy_lambda() did not go well')
         sys.exit(1)
 
 
