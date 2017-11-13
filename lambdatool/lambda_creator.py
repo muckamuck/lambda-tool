@@ -1,5 +1,7 @@
 import logging
 import traceback
+import subprocess
+import os
 import sys
 from shutil import copytree
 
@@ -10,7 +12,7 @@ logging.basicConfig(level=logging.INFO,
 logging.getLogger().setLevel(logging.INFO)
 
 
-class LambdaUtility:
+class LambdaCreator:
     """
     Lambda utility is yet another tool create and deploy AWS lambda functions
     """
@@ -66,3 +68,40 @@ class LambdaUtility:
             logging.error('Exception caught in create_lambda(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return False
+
+    def deploy_lambda(self):
+        """
+        Deploy an existing lambda to the indicated by creating CF template...
+
+        Args:
+            None
+
+        Returns:
+            True if the lambda is deployed
+            False if the lambda is not deployed for some odd reason
+        """
+        try:
+            logging.info(self._config)
+            cwd = os.getcwd()
+            dirs = cwd.split('/')
+            lambda_name = dirs[-1]
+            logging.info('lambda_name: {}'.format(lambda_name))
+            return True
+        except Exception as x:
+            logging.error('Exception caught in deploy_lambda(): {}'.format(x))
+            traceback.print_exc(file=sys.stdout)
+            return False
+
+    def execute_command(self, command):
+        buf = ""
+        try:
+            p = subprocess.Popen(command, stdout=subprocess.PIPE)
+            out, err = p.communicate()
+            for c in out:
+                buf = buf + c
+            return p.returncode, buf
+        except subprocess.CalledProcessError as x:
+            logging.error('Exception caught in create_lambda(): {}'.format(x))
+            traceback.print_exc(file=sys.stdout)
+            return False
+            return x.returncode, None
