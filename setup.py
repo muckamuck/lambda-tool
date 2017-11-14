@@ -31,7 +31,9 @@ setup(
         'GitPython>=2.1.7',
         'Click>=6.7',
         'PyYAML>=3.12',
-        'pymongo>=3.4.0'
+        'pymongo>=3.4.0',
+        'stackility',
+        'Mako>=1.0.6'
     ],
     entry_points="""
         [console_scripts]
