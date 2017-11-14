@@ -24,6 +24,8 @@ logging.basicConfig(level=logging.INFO,
 
 logging.getLogger().setLevel(logging.INFO)
 
+
+PYTHON = 'python2.7'
 DEFAULT_MODULE_FILE = 'main.py'
 IGNORED_STUFF = ('config', '.git')
 PIP_COMMAND = 'pip install -q -Ur requirements.txt -t .'
@@ -135,9 +137,64 @@ class LambdaDeployer:
                 logging.info('create_tag_file() failed')
                 return False
 
+            if self.create_stack_properties():
+                logging.info('create_stack_properties() created')
+            else:
+                logging.info('create_stack_properties() failed')
+                return False
+
             return True
         except Exception as x:
             logging.error('Exception caught in deploy_lambda(): {}'.format(x))
+            traceback.print_exc(file=sys.stdout)
+            return False
+
+    def create_stack_properties(self):
+        try:
+            stack_properties_file = '{}/stack.properties'.format(
+                self._config['work_directory']
+            )
+
+            self._config['stack_properties_file'] = stack_properties_file
+            logging.info('creating stack properties file: {}'.format(stack_properties_file))
+            bucket = self._ini_data.get(self._config['stage'], {}).get('bucket', None)
+            memory_size = self._ini_data.get(self._config['stage'], {}).get('memory', '128')
+            role = self._ini_data.get(self._config['stage'], {}).get('role', None)
+            timeout = self._ini_data.get(self._config['stage'], {}).get('timeout', '60')
+            security_group = self._ini_data.get(self._config['stage'], {}).get('security_group', None)
+            subnets = self._ini_data.get(self._config['stage'], {}).get('subnets', None)
+            sns_topic_arn = self._ini_data.get(self._config['stage'], {}).get('snsTopicARN', None)
+            trusted_service = self._ini_data.get(self._config['stage'], {}).get('trustedService', None)
+            lambda_schedule_expression = self._ini_data.get(self._config['stage'], {}).get('scheduleExpression', None)
+
+            with open(stack_properties_file, "w") as outfile:
+                outfile.write('s3Bucket={}\n'.format(bucket))
+                outfile.write('s3Key={}\n'.format(self._config['package_key']))
+                outfile.write('functionName={}-{}\n'.format(
+                        self._config['lambda_name'],
+                        self._config['stage']
+                    )
+                )
+                outfile.write('handler=main.lambda_handler\n')
+                outfile.write('runTime={}\n'.format(PYTHON))
+                outfile.write('memorySize={}\n'.format(memory_size))
+                outfile.write('role={}\n'.format(role))
+                outfile.write('timeOut={}\n'.format(timeout))
+                outfile.write('securityGroupIds={}\n'.format(security_group))
+                outfile.write('subnetIds={}\n'.format(subnets))
+
+                if sns_topic_arn:
+                    outfile.write('snsTopicARN={}\n'.format(sns_topic_arn))
+
+                if trusted_service:
+                    outfile.write('trustedService={}\n'.format(trusted_service))
+
+                if lambda_schedule_expression:
+                    outfile.write('scheduleExpression={}\n'.format(lambda_schedule_expression))
+
+            return True
+        except Exception as x:
+            logging.error('Exception caught in create_tag_file(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return False
 
@@ -171,6 +228,7 @@ class LambdaDeployer:
                 self._config['hash']
             )
             logging.info('key: {}'.format(key))
+            self._config['package_key'] = key
 
             if not self._config['region']:
                 self._config['region'] = boto3.session.Session().region_name
