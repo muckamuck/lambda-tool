@@ -3,13 +3,14 @@ import traceback
 import subprocess
 import os
 import sys
-from shutil import copytree
+import shutil
 
 logging.basicConfig(level=logging.INFO,
                     format='[%(levelname)s] %(asctime)s (%(module)s) %(message)s',
                     datefmt='%Y/%m/%d-%H:%M:%S')
 
 logging.getLogger().setLevel(logging.INFO)
+IGNORED_STUFF = ('template_template')
 
 
 class LambdaCreator:
@@ -56,11 +57,11 @@ class LambdaCreator:
             logging.info('     source_directory: {}'.format(self._config['template_directory']))
             logging.info('destination_directory: {}'.format(destination_directory))
 
-            copytree(
+            shutil.copytree(
                 self._config['template_directory'],
                 destination_directory,
                 symlinks=False,
-                ignore=None
+                ignore=shutil.ignore_patterns(*IGNORED_STUFF)
             )
 
             return True
