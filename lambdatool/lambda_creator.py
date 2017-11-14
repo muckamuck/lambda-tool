@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%Y/%m/%d-%H:%M:%S')
 
 logging.getLogger().setLevel(logging.INFO)
-IGNORED_STUFF = ('template_template')
+IGNORED_STUFF = ('template_template', '*.pyc')
 
 
 class LambdaCreator:
