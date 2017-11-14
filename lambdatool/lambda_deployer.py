@@ -129,9 +129,38 @@ class LambdaDeployer:
                 logging.info('upload_package() failed to upload {}'.format(self._config['package_name']))
                 return False
 
+            if self.create_tag_file():
+                logging.info('create_tag_file() created')
+            else:
+                logging.info('create_tag_file() failed')
+                return False
+
             return True
         except Exception as x:
             logging.error('Exception caught in deploy_lambda(): {}'.format(x))
+            traceback.print_exc(file=sys.stdout)
+            return False
+
+    def create_tag_file(self):
+        try:
+            tag_file = '{}/tag.properties'.format(
+                self._config['work_directory']
+            )
+
+            self._config['tag_file'] = tag_file
+            logging.info('creating tags file: {}'.format(tag_file))
+            with open(tag_file, "w") as outfile:
+                outfile.write('APPLICATION={} lambda function\n'.format(self._config.get('lambda_name', 'unknown')))
+                outfile.write('ENVIRONMENT={}\n'.format(self._config.get('stage', 'unknown')))
+                outfile.write('STACK_NAME=lambda-{}-{}\n'.format(
+                        self._config.get('lambda_name', 'unknown'),
+                        self._config.get('stage', 'unknown')
+                    )
+                )
+                outfile.write('VERSION={}\n'.format(self._config.get('hash', 'unknown')))
+            return True
+        except Exception as x:
+            logging.error('Exception caught in create_tag_file(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return False
 
