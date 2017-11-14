@@ -77,6 +77,7 @@ def deploy(directory, stage, profile, region):
     else:
         command_line['region'] = None
 
+    command_line['template_directory'] = '{}/template'.format(lambdatool.__path__[0])
     logging.info('command_line: {}'.format(json.dumps(command_line, indent=2)))
 
     if deploy_lambda(command_line):
