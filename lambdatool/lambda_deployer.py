@@ -11,6 +11,7 @@ import shutil
 import zipfile
 import utility #noqa
 import ConfigParser
+from template_creator import TemplateCreator
 
 try:
     import zlib #noqa
@@ -143,9 +144,38 @@ class LambdaDeployer:
                 logging.info('create_stack_properties() failed')
                 return False
 
+            if self.create_template_file():
+                logging.info('create_template_file() created')
+            else:
+                logging.info('create_template_file() failed')
+                return False
+
             return True
         except Exception as x:
             logging.error('Exception caught in deploy_lambda(): {}'.format(x))
+            traceback.print_exc(file=sys.stdout)
+            return False
+
+    def create_template_file(self):
+        try:
+            function_properties = '{}/config/{}/function.properties'.format(
+                    self._config['work_directory'],
+                    self._config['stage']
+            )
+            stack_properties = '{}/stack.properties'.format(self._config['work_directory'])
+            output_file = '{}/template.yaml'.format(self._config['work_directory'])
+            template_file = '{}/template_template'.format(self._config['template_directory'])
+            templateCreator = TemplateCreator()
+            template_created = templateCreator.create_template(
+                function_properties=function_properties,
+                stack_properties=stack_properties,
+                output_file=output_file,
+                template_file=template_file
+            )
+
+            return template_created
+        except Exception as wtf:
+            logging.error('Exception caught in create_template_file(): {}'.format(wtf))
             traceback.print_exc(file=sys.stdout)
             return False
 
@@ -271,6 +301,14 @@ class LambdaDeployer:
                 '.',
                 self._config['work_directory'],
                 ignore=shutil.ignore_patterns(*IGNORED_STUFF)
+            )
+
+            shutil.copytree(
+                'config/{}'.format(self._config['stage']),
+                '{}/config/{}'.format(
+                    self._config['work_directory'],
+                    self._config['stage']
+                )
             )
 
             return True
