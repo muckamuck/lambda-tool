@@ -152,10 +152,19 @@ class LambdaDeployer:
                 's3'
             )
 
+            bucket = self._ini_data.get(self._config['stage'], {}).get('bucket', None)
             if s3_client:
                 logging.info('S3 client allocated')
+                logging.info('preparing upload to s3://{}/{}'.format(bucket, key))
             else:
                 logging.error('S3 client allocation failed')
+                return False
+
+            if bucket:
+                with open(self._config['package_name'], 'rb') as the_package:
+                    s3_client.upload_fileobj(the_package, bucket, key)
+            else:
+                logging.error('S3 bucket not found in config/config.ini')
                 return False
 
             return True
