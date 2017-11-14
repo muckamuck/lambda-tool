@@ -12,6 +12,7 @@ import zipfile
 import utility #noqa
 import ConfigParser
 from template_creator import TemplateCreator
+from stackility import CloudStackUtility
 
 try:
     import zlib #noqa
@@ -150,9 +151,50 @@ class LambdaDeployer:
                 logging.info('create_template_file() failed')
                 return False
 
+            if self.create_stack():
+                logging.info('create_stack() created')
+            else:
+                logging.info('create_stack() failed')
+                return False
+
             return True
         except Exception as x:
             logging.error('Exception caught in deploy_lambda(): {}'.format(x))
+            traceback.print_exc(file=sys.stdout)
+            return False
+
+    def create_stack(self):
+        try:
+            command_line = {}
+            command_line['stackName'] = 'lambda-{}-{}'.format(
+                self._config.get('lambda_name', 'unknown'),
+                self._config.get('stage', 'unknown')
+            )
+
+            command_line['destinationBucket'] = self._ini_data.get(self._config['stage'], {}).get('bucket', None)
+            command_line['templateFile'] = '{}/template.yaml'.format(self._config['work_directory'])
+            command_line['tagFile'] = self._config['tag_file']
+            command_line['yaml'] = True
+            command_line['dryrun'] = False
+            command_line['parameterFile'] = self._config['stack_properties_file']
+            command_line['codeVersion'] = self._config['hash']
+            command_line['profile'] = self._config['profile']
+            command_line['region'] = self._config['region']
+
+            stack_driver = CloudStackUtility(command_line)
+            if stack_driver.upsert():
+                logging.info('stack create/update was started successfully.')
+                if stack_driver.poll_stack():
+                    logging.info('stack create/update was finished successfully.')
+                    return True
+                else:
+                    logging.error('stack create/update was did not go well.')
+                    return False
+            else:
+                logging.error('start of stack create/update did not go well.')
+                return False
+        except Exception as wtf:
+            logging.error('Exception caught in create_template_file(): {}'.format(wtf))
             traceback.print_exc(file=sys.stdout)
             return False
 
@@ -224,7 +266,7 @@ class LambdaDeployer:
 
             return True
         except Exception as x:
-            logging.error('Exception caught in create_tag_file(): {}'.format(x))
+            logging.error('Exception caught in create_stack_properties(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return False
 
