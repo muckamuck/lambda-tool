@@ -52,7 +52,9 @@ def new(directory, name):
 @cli.command()
 @click.option('-d', '--directory')
 @click.option('-s', '--stage')
-def deploy(directory, stage):
+@click.option('-p', '--profile')
+@click.option('-r', '--region')
+def deploy(directory, stage, profile, region):
     command_line = {}
 
     if directory:
@@ -64,6 +66,16 @@ def deploy(directory, stage):
         command_line['stage'] = stage
     else:
         command_line['stage'] = default_stage
+
+    if profile:
+        command_line['profile'] = profile
+    else:
+        command_line['profile'] = None
+
+    if region:
+        command_line['region'] = region
+    else:
+        command_line['region'] = None
 
     logging.info('command_line: {}'.format(json.dumps(command_line, indent=2)))
 

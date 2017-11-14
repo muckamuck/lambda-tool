@@ -15,5 +15,4 @@ def get_api_client(profile_name, region_name, aws_service):
         return api_client
     except Exception as x:
         logging.error('Exception caught in get_api_client(): {}'.format(x))
-        traceback.print_exc(file=sys.stdout)
         return None

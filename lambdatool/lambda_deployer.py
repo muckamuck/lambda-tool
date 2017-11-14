@@ -6,6 +6,7 @@ import git
 import sys
 import uuid
 import json
+import boto3
 import shutil
 import zipfile
 import utility #noqa
@@ -141,6 +142,22 @@ class LambdaDeployer:
                 self._config['hash']
             )
             logging.info('key: {}'.format(key))
+
+            if not self._config['region']:
+                self._config['region'] = boto3.session.Session().region_name
+
+            s3_client = utility.get_api_client(
+                self._config['profile'],
+                self._config['region'],
+                's3'
+            )
+
+            if s3_client:
+                logging.info('S3 client allocated')
+            else:
+                logging.error('S3 client allocation failed')
+                return False
+
             return True
         except Exception as wtf:
             logging.error('Exception caught in upload_package(): {}'.format(wtf))
