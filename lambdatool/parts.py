@@ -91,4 +91,21 @@ the_api = """  theAPI:
           Empty:
             type: "object"
             title: "Empty Schema"
-        """
+  theDeployment:
+    DependsOn: theAPI
+    Properties:
+      Description:
+        "dev"
+      RestApiId:
+        Ref: theAPI
+      StageName:
+        "dev"
+    Type: AWS::ApiGateway::Deployment
+  APIGPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn: theAPI
+    Properties:
+      FunctionName:
+        Fn::GetAtt: [LambdaFunction, Arn]
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com"""
