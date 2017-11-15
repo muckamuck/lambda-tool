@@ -1,85 +1,94 @@
+region = None
+stage = None
+account = None
+lambda_name = None
+
 the_api = """  theAPI:
     Type: AWS::ApiGateway::RestApi
+    DependsOn: LambdaFunction
     Properties:
       Description: LambdaTool created this AWS ApiGateway RestApi thing
       Body:
-        definitions:
-          Empty:
-            title: Empty Schema
-            type: object
+        swagger: "2.0"
         info:
-          title:
-            Ref: LambdaName
-          version: '2017-01-06T19:38:54Z'
+          version: "2017-11-15T16:30:51Z"
+          title: "pi-estimate"
+        host: "ozi3yy5k9a.execute-api.us-west-2.amazonaws.com"
+        basePath: "/v0"
+        schemes:
+        - "https"
         paths:
-          "/{something+}":
-            options:
-              consumes:
-              - application/json
+          /:
+            x-amazon-apigateway-any-method:
               produces:
-              - application/json
+              - "application/json"
               responses:
                 '200':
-                  description: 200 response
-                  headers:
-                    Access-Control-Allow-Headers:
-                      type: string
-                    Access-Control-Allow-Methods:
-                      type: string
-                    Access-Control-Allow-Origin:
-                      type: string
+                  description: "200 response"
                   schema:
-                    "$ref": "#/definitions/Empty"
+                    $ref: "#/definitions/Empty"
               x-amazon-apigateway-integration:
-                passthroughBehavior: when_no_match
-                requestTemplates:
-                  application/json: '{"statusCode": 200}'
                 responses:
                   default:
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
-                      method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
-                      method.response.header.Access-Control-Allow-Origin: "'*'"
-                    statusCode: '200'
-                type: mock
-            x-amazon-apigateway-any-method:
-              parameters:
-              - in: path
-                name: something
-                required: true
-                type: string
+                    statusCode: "200"
+                uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:018734038160:function:pi-estimate-dev/invocations"
+                passthroughBehavior: "when_no_match"
+                httpMethod: "POST"
+                contentHandling: "CONVERT_TO_TEXT"
+                type: "aws_proxy"
+          /{proxy+}:
+            options:
+              consumes:
+              - "application/json"
               produces:
-              - application/json
+              - "application/json"
+              responses:
+                '200':
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Empty"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
+                    Access-Control-Allow-Methods:
+                      type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                requestTemplates:
+                  application/json: "{\\"statusCode\\": 200}"
+                passthroughBehavior: "when_no_match"
+                type: "mock"
+            x-amazon-apigateway-any-method:
+              produces:
+              - "application/json"
+              parameters:
+              - name: "proxy"
+                in: "path"
+                required: true
+                type: "string"
               responses: {}
               x-amazon-apigateway-integration:
-                cacheKeyParameters:
-                - method.request.path.something
-                cacheNamespace: t0eu93
-                contentHandling: CONVERT_TO_TEXT
-                httpMethod: POST
-                passthroughBehavior: when_no_match
                 responses:
                   default:
-                    statusCode: '200'
-                type: aws_proxy
-                uri:
-                  Fn::Join:
-                  - ''
-                  - - 'arn:aws:apigateway:'
-                    - Ref: AWS::Region
-                    - ":lambda:path/2015-03-31/functions/arn:aws:lambda:"
-                    - Ref: AWS::Region
-                    - ":"
-                    - Ref: AWS::AccountId
-                    - ":function:"
-                    - Ref: LambdaName
-                    - "-"
-                    - Ref: Environment
-                    - "/invocations"
-        swagger: '2.0'
-      FailOnWarnings: ''
-      Name:
-        Fn::Join:
-        - "-"
-        - - Ref: LambdaName
-          - Ref: StageName"""
+                    statusCode: "200"
+                uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:018734038160:function:pi-estimate-dev/invocations"
+                passthroughBehavior: "when_no_match"
+                httpMethod: "POST"
+                cacheNamespace: "fyc8uq"
+                cacheKeyParameters:
+                - "method.request.path.proxy"
+                contentHandling: "CONVERT_TO_TEXT"
+                type: "aws_proxy"
+        definitions:
+          Empty:
+            type: "object"
+            title: "Empty Schema"
+        """

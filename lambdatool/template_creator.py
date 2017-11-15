@@ -1,9 +1,11 @@
 from mako.template import Template
 from mako.runtime import Context
 from StringIO import StringIO
+from parts import the_api
 import os
 import sys
 import logging
+
 
 snsTopicARN = 'snsTopicARN='
 trustedService = 'trustedService='
@@ -110,9 +112,6 @@ class TemplateCreator:
                     if key and val:
                         self._food += spacer + key + ': ' + val + '\n'
 
-            '''
-            self._food += spacer + 'ENCRYPTED_VARS: ' + _function_vars_csv + '\n'
-            '''
             buf = StringIO()
             t = Template(filename=self._template_file)
 
@@ -145,20 +144,19 @@ class TemplateCreator:
                 trustedService=trusted_service_var_bits,
                 trustedServiceResource=trusted_service_resource_bits,
                 scheduleExpression=schedule_var_bits,
-                scheduleResource=schedule_resource_bits
+                scheduleResource=schedule_resource_bits,
+                theAPI=the_api
             )
 
             t.render_context(ctx)
+            logging.info('writing template {}'.format(self._output_file))
             with open(self._output_file, "w") as outfile:
                     outfile.write(buf.getvalue())
         except Exception as wtf:
-            print('Exception caught in inject_stuff(): {}'.format(wtf))
+            logging.error('Exception caught in inject_stuff(): {}'.format(wtf))
             sys.exit(1)
 
     def _read_stack_properties(self):
-        '''
-        global _sns_topic_arn_found, _trusted_service_found, _schedule_found
-        '''
         try:
             with open(self._stack_properties, 'r') as infile:
                 for thing in infile:
@@ -169,20 +167,11 @@ class TemplateCreator:
                     if thing.startswith(schedule):
                         self._schedule_found = True
         except Exception as wtf:
-            print('Exception caught in read_stack_properties(): {}'.format(wtf))
+            logging.error('Exception caught in read_stack_properties(): {}'.format(wtf))
             sys.exit(1)
 
         return True
 
-    '''
-    _stack_properties = None
-    _input_file = None
-    _output_file = None
-    _template_file = None
-    _sns_topic_arn_found = False
-    _trusted_service_found = False
-    _schedule_found = False
-    '''
     def create_template(self, **kwargs):
         try:
             self._input_file = kwargs['function_properties']
@@ -194,17 +183,10 @@ class TemplateCreator:
             self._inject_stuff()
             return True
         except Exception as wtf:
-            print(wtf)
+            logging.error(wtf)
             return False
 
 if __name__ == '__main__':
-    '''
-    read_command_line()
-    read_stack_properties()
-    inject_stuff()
-    sys.exit(0)
-    '''
-
     templateCreator = TemplateCreator()
     templateCreator.create_template(
         function_properties='/tmp/scratch/f315ee80/config/dev/function.properties',

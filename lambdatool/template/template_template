@@ -74,3 +74,4 @@ ${environment_section}
 ${snsSubscriptionResource}
 ${trustedServiceResource}
 ${scheduleResource}
+${theAPI}

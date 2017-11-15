@@ -1,3 +1,4 @@
 Stackility>=0.2
 bumpversion>=0.5
 pdbpp>=0.9
+twine
