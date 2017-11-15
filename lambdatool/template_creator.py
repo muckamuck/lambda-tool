@@ -1,7 +1,7 @@
 from mako.template import Template
 from mako.runtime import Context
 from StringIO import StringIO
-from parts import the_api
+from parts import get_the_api_chunk
 import os
 import sys
 import logging
@@ -90,6 +90,10 @@ class TemplateCreator:
     _sns_topic_arn_found = False
     _trusted_service_found = False
     _schedule_found = False
+    _regio = None
+    _stage_name = None
+    _short_name = None
+    _account = None
 
     _food = """      Environment:
         Variables:
@@ -136,6 +140,13 @@ class TemplateCreator:
                 schedule_var_bits = ''
                 schedule_resource_bits = ''
 
+            the_api_bits = get_the_api_chunk(
+                region=self._region,
+                stage_name=self._stage_name,
+                short_name=self._short_name,
+                account=self._account
+            )
+
             ctx = Context(
                 buf,
                 environment_section=self._food,
@@ -145,7 +156,7 @@ class TemplateCreator:
                 trustedServiceResource=trusted_service_resource_bits,
                 scheduleExpression=schedule_var_bits,
                 scheduleResource=schedule_resource_bits,
-                theAPI=the_api
+                theAPI=the_api_bits
             )
 
             t.render_context(ctx)
@@ -178,6 +189,10 @@ class TemplateCreator:
             self._stack_properties = kwargs['stack_properties']
             self._output_file = kwargs['output_file']
             self._template_file = kwargs['template_file']
+            self._region = kwargs['region']
+            self._stage_name = kwargs['stage_name']
+            self._short_name = kwargs['short_name']
+            self._account = kwargs['account']
 
             self._read_stack_properties()
             self._inject_stuff()

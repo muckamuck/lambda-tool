@@ -212,7 +212,11 @@ class LambdaDeployer:
                 function_properties=function_properties,
                 stack_properties=stack_properties,
                 output_file=output_file,
-                template_file=template_file
+                template_file=template_file,
+                region=self._config['region'],
+                stage_name=self._config['stage'],
+                short_name=self._config['lambda_name'],
+                account=boto3.client('sts').get_caller_identity()['Account']
             )
 
             return template_created
