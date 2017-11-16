@@ -206,7 +206,7 @@ class LambdaDeployer:
                 logging.error('start of stack create/update did not go well.')
                 return False
         except Exception as wtf:
-            logging.error('Exception caught in create_template_file(): {}'.format(wtf))
+            logging.error('Exception caught in create_stack(): {}'.format(wtf))
             traceback.print_exc(file=sys.stdout)
             return False
 
@@ -253,6 +253,7 @@ class LambdaDeployer:
             sns_topic_arn = self._ini_data.get(self._stage, {}).get('snsTopicARN', None)
             trusted_service = self._ini_data.get(self._stage, {}).get('trustedService', None)
             lambda_schedule_expression = self._ini_data.get(self._stage, {}).get('scheduleExpression', None)
+            service = self._ini_data.get(self._stage, {}).get('service', None)
 
             with open(self._stack_properties_file, "w") as outfile:
                 outfile.write('s3Bucket={}\n'.format(bucket))
@@ -278,6 +279,10 @@ class LambdaDeployer:
 
                 if lambda_schedule_expression:
                     outfile.write('scheduleExpression={}\n'.format(lambda_schedule_expression))
+
+                if service:
+                    if service.lower() == 'true':
+                        outfile.write('service=true\n')
 
             return True
         except Exception as x:

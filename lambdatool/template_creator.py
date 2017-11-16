@@ -7,9 +7,10 @@ import sys
 import logging
 
 
-snsTopicARN = 'snsTopicARN='
-trustedService = 'trustedService='
-schedule = 'scheduleExpression='
+snsTopicARN = 'snsTopicARN'
+trustedService = 'trustedService'
+schedule = 'scheduleExpression'
+service = 'service'
 new_line = '\n'
 spacer = '          '
 
@@ -89,6 +90,7 @@ class TemplateCreator:
     _template_file = None
     _sns_topic_arn_found = False
     _trusted_service_found = False
+    _create_service = False
     _schedule_found = False
     _regio = None
     _stage_name = None
@@ -140,12 +142,15 @@ class TemplateCreator:
                 schedule_var_bits = ''
                 schedule_resource_bits = ''
 
-            the_api_bits = get_the_api_chunk(
-                region=self._region,
-                stage_name=self._stage_name,
-                short_name=self._short_name,
-                account=self._account
-            )
+            if self._create_service:
+                the_api_bits = get_the_api_chunk(
+                    region=self._region,
+                    stage_name=self._stage_name,
+                    short_name=self._short_name,
+                    account=self._account
+                )
+            else:
+                the_api_bits = ''
 
             ctx = Context(
                 buf,
@@ -169,14 +174,34 @@ class TemplateCreator:
 
     def _read_stack_properties(self):
         try:
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
+            print(self._stack_properties)
             with open(self._stack_properties, 'r') as infile:
                 for thing in infile:
-                    if thing.startswith(snsTopicARN):
+                    wrk = thing.split('=')
+                    if wrk[0] == snsTopicARN:
                         self._sns_topic_arn_found = True
-                    if thing.startswith(trustedService):
+                    if wrk[0] == trustedService:
                         self._trusted_service_found = True
-                    if thing.startswith(schedule):
+                    if wrk[0] == schedule:
                         self._schedule_found = True
+                    if wrk[0] == service and \
+                            len(wrk) == 2 and \
+                            wrk[1].lower().strip() == 'true':
+                        self._create_service = True
         except Exception as wtf:
             logging.error('Exception caught in read_stack_properties(): {}'.format(wtf))
             sys.exit(1)
