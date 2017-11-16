@@ -24,7 +24,7 @@ Parameters:
   role:
     Description: name of the role
     Type: String
-    Default: arn:aws:iam::300130449397:role/micro-service-lambda
+    Default: arn:aws:iam::999999999:role/something
   runTime:
     Description: run time engine of the thingy
     Type: String
@@ -36,11 +36,11 @@ Parameters:
   securityGroupIds:
     Description: list of security groups
     Type: CommaDelimitedList
-    Default: sg-df7837a2
+    Default: sg-11111111
   subnetIds:
     Description: list of subnets
     Type: CommaDelimitedList
-    Default: subnet-45fc291e,subnet-834e98ae,subnet-9d78bda1
+    Default: subnet-22222222,subnet-33333333,subnet-44444444
 ${snsTopicARN}
 ${trustedService}
 ${scheduleExpression}
