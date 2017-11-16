@@ -42,10 +42,18 @@ class LambdaDeployer:
     """
     Lambda utility is yet another tool create and deploy AWS lambda functions
     """
-    _config = None
     _ini_data = None
     _stage = None
     _work_directory = None
+    _package_name = None
+    _package_key = None
+    _profile = None
+    _region = None
+    _lambda_name = None
+    _hash = None
+    _tag_file = None
+    _stack_properties_file = None
+    _template_directory = None
 
     def __init__(self, config_block):
         """
@@ -63,17 +71,16 @@ class LambdaDeployer:
             SystemError - if everything isn't just right
         """
         if config_block:
-            self._config = config_block
-
-            if not os.path.isdir(self._config['work_directory']):
-                logging.error('{} does not exist'.format(self._config['work_directory']))
+            if not os.path.isdir(config_block['work_directory']):
+                logging.error('{} does not exist'.format(config_block['work_directory']))
                 raise SystemError
 
             tmp_name = (str(uuid.uuid4()))[:8]
-            self._work_directory = '{}/{}'.format(
-                self._config['work_directory'],
-                tmp_name
-            )
+            self._work_directory = '{}/{}'.format(config_block['work_directory'], tmp_name)
+            self._stage = config_block['stage']
+            self._profile = config_block['profile']
+            self._region = config_block['region']
+            self._template_directory = config_block['template_directory']
         else:
             logging.error('config block was garbage')
             raise SystemError
@@ -90,9 +97,7 @@ class LambdaDeployer:
             False if the lambda is not deployed for some odd reason
         """
         try:
-            logging.info(self._config)
-
-            lambda_name = self.find_lambda_name()
+            self._lambda_name = self.find_lambda_name()
             if not self.verify_lambda_directory():
                 logging.error('module file {} not found, exiting'.format(DEFAULT_MODULE_FILE))
                 return False
@@ -103,11 +108,16 @@ class LambdaDeployer:
                 logging.error('failed to read config/config.ini file, exiting'.format(DEFAULT_MODULE_FILE))
                 return False
 
-            commit_hash = self.find_commit()
-            if commit_hash:
-                logging.info('deploying version/commit {} of {}'.format(commit_hash, lambda_name))
+            if self.set_hash():
+                logging.info('deploying version/commit {} of {}'.format(self._hash, self._lambda_name))
             else:
                 logging.error('git repo required, exiting!')
+                return False
+
+            if self.set_package_name():
+                logging.info('package_name: {}'.format(self._package_name))
+            else:
+                logging.error('failed to set package_name')
                 return False
 
             if self.copy_stuff():
@@ -124,15 +134,15 @@ class LambdaDeployer:
                 return False
 
             if self.create_zip():
-                logging.info('create_zip() created {}'.format(self._config['package_name']))
+                logging.info('create_zip() created {}'.format(self._package_name))
             else:
-                logging.info('create_zip() failed to create {}'.format(self._config['package_name']))
+                logging.info('create_zip() failed to create {}'.format(self._package_name))
                 return False
 
             if self.upload_package():
-                logging.info('upload_package() uploaded {}'.format(self._config['package_name']))
+                logging.info('upload_package() uploaded {}'.format(self._package_name))
             else:
-                logging.info('upload_package() failed to upload {}'.format(self._config['package_name']))
+                logging.info('upload_package() failed to upload {}'.format(self._package_name))
                 return False
 
             if self.create_tag_file():
@@ -169,19 +179,19 @@ class LambdaDeployer:
         try:
             command_line = {}
             command_line['stackName'] = 'lambda-{}-{}'.format(
-                self._config.get('lambda_name', 'unknown'),
-                self._config.get('stage', 'unknown')
+                self._lambda_name,
+                self._stage
             )
 
-            command_line['destinationBucket'] = self._ini_data.get(self._config['stage'], {}).get('bucket', None)
+            command_line['destinationBucket'] = self._ini_data.get(self._stage, {}).get('bucket', None)
             command_line['templateFile'] = '{}/template.yaml'.format(self._work_directory)
-            command_line['tagFile'] = self._config['tag_file']
+            command_line['tagFile'] = self._tag_file
             command_line['yaml'] = True
             command_line['dryrun'] = False
-            command_line['parameterFile'] = self._config['stack_properties_file']
-            command_line['codeVersion'] = self._config['hash']
-            command_line['profile'] = self._config['profile']
-            command_line['region'] = self._config['region']
+            command_line['parameterFile'] = self._stack_properties_file
+            command_line['codeVersion'] = self._hash
+            command_line['profile'] = self._profile
+            command_line['region'] = self._region
 
             stack_driver = CloudStackUtility(command_line)
             if stack_driver.upsert():
@@ -204,20 +214,20 @@ class LambdaDeployer:
         try:
             function_properties = '{}/config/{}/function.properties'.format(
                     self._work_directory,
-                    self._config['stage']
+                    self._stage
             )
             stack_properties = '{}/stack.properties'.format(self._work_directory)
             output_file = '{}/template.yaml'.format(self._work_directory)
-            template_file = '{}/template_template'.format(self._config['template_directory'])
+            template_file = '{}/template_template'.format(self._template_directory)
             templateCreator = TemplateCreator()
             template_created = templateCreator.create_template(
                 function_properties=function_properties,
                 stack_properties=stack_properties,
                 output_file=output_file,
                 template_file=template_file,
-                region=self._config['region'],
-                stage_name=self._config['stage'],
-                short_name=self._config['lambda_name'],
+                region=self._region,
+                stage_name=self._stage,
+                short_name=self._lambda_name,
                 account=boto3.client('sts').get_caller_identity()['Account']
             )
 
@@ -229,28 +239,27 @@ class LambdaDeployer:
 
     def create_stack_properties(self):
         try:
-            stack_properties_file = '{}/stack.properties'.format(
+            self._stack_properties_file = '{}/stack.properties'.format(
                 self._work_directory
             )
 
-            self._config['stack_properties_file'] = stack_properties_file
-            logging.info('creating stack properties file: {}'.format(stack_properties_file))
-            bucket = self._ini_data.get(self._config['stage'], {}).get('bucket', None)
-            memory_size = self._ini_data.get(self._config['stage'], {}).get('memory', '128')
-            role = self._ini_data.get(self._config['stage'], {}).get('role', None)
-            timeout = self._ini_data.get(self._config['stage'], {}).get('timeout', '60')
-            security_group = self._ini_data.get(self._config['stage'], {}).get('security_group', None)
-            subnets = self._ini_data.get(self._config['stage'], {}).get('subnets', None)
-            sns_topic_arn = self._ini_data.get(self._config['stage'], {}).get('snsTopicARN', None)
-            trusted_service = self._ini_data.get(self._config['stage'], {}).get('trustedService', None)
-            lambda_schedule_expression = self._ini_data.get(self._config['stage'], {}).get('scheduleExpression', None)
+            logging.info('creating stack properties file: {}'.format(self._stack_properties_file))
+            bucket = self._ini_data.get(self._stage, {}).get('bucket', None)
+            memory_size = self._ini_data.get(self._stage, {}).get('memory', '128')
+            role = self._ini_data.get(self._stage, {}).get('role', None)
+            timeout = self._ini_data.get(self._stage, {}).get('timeout', '60')
+            security_group = self._ini_data.get(self._stage, {}).get('security_group', None)
+            subnets = self._ini_data.get(self._stage, {}).get('subnets', None)
+            sns_topic_arn = self._ini_data.get(self._stage, {}).get('snsTopicARN', None)
+            trusted_service = self._ini_data.get(self._stage, {}).get('trustedService', None)
+            lambda_schedule_expression = self._ini_data.get(self._stage, {}).get('scheduleExpression', None)
 
-            with open(stack_properties_file, "w") as outfile:
+            with open(self._stack_properties_file, "w") as outfile:
                 outfile.write('s3Bucket={}\n'.format(bucket))
-                outfile.write('s3Key={}\n'.format(self._config['package_key']))
+                outfile.write('s3Key={}\n'.format(self._package_key))
                 outfile.write('functionName={}-{}\n'.format(
-                        self._config['lambda_name'],
-                        self._config['stage']
+                        self._lambda_name,
+                        self._stage
                     )
                 )
                 outfile.write('handler=main.lambda_handler\n')
@@ -278,21 +287,20 @@ class LambdaDeployer:
 
     def create_tag_file(self):
         try:
-            tag_file = '{}/tag.properties'.format(
+            self._tag_file = '{}/tag.properties'.format(
                 self._work_directory
             )
 
-            self._config['tag_file'] = tag_file
-            logging.info('creating tags file: {}'.format(tag_file))
-            with open(tag_file, "w") as outfile:
-                outfile.write('APPLICATION={} lambda function\n'.format(self._config.get('lambda_name', 'unknown')))
-                outfile.write('ENVIRONMENT={}\n'.format(self._config.get('stage', 'unknown')))
+            logging.info('creating tags file: {}'.format(self._tag_file))
+            with open(self._tag_file, "w") as outfile:
+                outfile.write('APPLICATION={} lambda function\n'.format(self._lambda_name))
+                outfile.write('ENVIRONMENT={}\n'.format(self._stage))
                 outfile.write('STACK_NAME=lambda-{}-{}\n'.format(
-                        self._config.get('lambda_name', 'unknown'),
-                        self._config.get('stage', 'unknown')
+                        self._lambda_name,
+                        self._stage
                     )
                 )
-                outfile.write('VERSION={}\n'.format(self._config.get('hash', 'unknown')))
+                outfile.write('VERSION={}\n'.format(self._hash))
             return True
         except Exception as x:
             logging.error('Exception caught in create_tag_file(): {}'.format(x))
@@ -301,33 +309,32 @@ class LambdaDeployer:
 
     def upload_package(self):
         try:
-            key = 'lambda-code/{}/{}.zip'.format(
-                self._config['lambda_name'],
-                self._config['hash']
+            self._package_key = 'lambda-code/{}/{}.zip'.format(
+                self._lambda_name,
+                self._hash
             )
-            logging.info('key: {}'.format(key))
-            self._config['package_key'] = key
+            logging.info('package key: {}'.format(self._package_key))
 
-            if not self._config['region']:
-                self._config['region'] = boto3.session.Session().region_name
+            if not self._region:
+                self._region = boto3.session.Session().region_name
 
             s3_client = utility.get_api_client(
-                self._config['profile'],
-                self._config['region'],
+                self._profile,
+                self._region,
                 's3'
             )
 
-            bucket = self._ini_data.get(self._config['stage'], {}).get('bucket', None)
+            bucket = self._ini_data.get(self._stage, {}).get('bucket', None)
             if s3_client:
                 logging.info('S3 client allocated')
-                logging.info('preparing upload to s3://{}/{}'.format(bucket, key))
+                logging.info('preparing upload to s3://{}/{}'.format(bucket, self._package_key))
             else:
                 logging.error('S3 client allocation failed')
                 return False
 
             if bucket:
-                with open(self._config['package_name'], 'rb') as the_package:
-                    s3_client.upload_fileobj(the_package, bucket, key)
+                with open(self._package_name, 'rb') as the_package:
+                    s3_client.upload_fileobj(the_package, bucket, self._package_key)
             else:
                 logging.error('S3 bucket not found in config/config.ini')
                 return False
@@ -352,10 +359,10 @@ class LambdaDeployer:
             )
 
             shutil.copytree(
-                'config/{}'.format(self._config['stage']),
+                'config/{}'.format(self._stage),
                 '{}/config/{}'.format(
                     self._work_directory,
-                    self._config['stage']
+                    self._stage
                 )
             )
 
@@ -365,16 +372,15 @@ class LambdaDeployer:
             traceback.print_exc(file=sys.stdout)
             return False
 
-    def find_commit(self):
+    def set_hash(self):
         try:
             repo = git.Repo(search_parent_directories=False)
             hash = repo.head.object.hexsha
             hash = hash[:8]
-            self._config['hash'] = hash
+            self._hash = hash
+            return True
         except Exception:
-            hash = None
-
-        return hash
+            return False
 
     def verify_lambda_directory(self):
 
@@ -386,7 +392,6 @@ class LambdaDeployer:
             cwd = os.getcwd()
             dirs = cwd.split('/')
             lambda_name = dirs[-1]
-            self._config['lambda_name'] = lambda_name
             logging.info('lambda_name: {}'.format(lambda_name))
         except Exception as x:
             logging.error('Exception caught in deploy_lambda(): {}'.format(x))
@@ -426,18 +431,25 @@ class LambdaDeployer:
 
         return tree
 
+    def set_package_name(self):
+        try:
+            if self._work_directory and self._hash:
+                self._package_name = '{}/{}.zip'.format(
+                    self._work_directory,
+                    self._hash
+                )
+                return True
+            else:
+                return False
+        except Exception:
+            return False
+
     def create_zip(self):
         zf = None
         try:
             logging.info('adding files with compression mode={}'.format(ZIP_MODES[compression]))
-            package_name = '{}/{}.zip'.format(
-                self._work_directory,
-                self._config['hash']
-            )
+            zf = zipfile.ZipFile(self._package_name, mode='w')
 
-            self._config['package_name'] = package_name
-
-            zf = zipfile.ZipFile(package_name, mode='w')
             for f in self.find_data('.'):
                 zf.write(f, compress_type=compression)
 
