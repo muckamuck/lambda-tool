@@ -7,9 +7,9 @@ import sys
 import logging
 
 
-snsTopicARN = 'snsTopicARN'
-trustedService = 'trustedService'
-schedule = 'scheduleExpression'
+snsTopicARN = 'snstopicarn'
+trustedService = 'trustedservice'
+schedule = 'scheduleexpression'
 service = 'service'
 new_line = '\n'
 spacer = '          '
@@ -174,31 +174,16 @@ class TemplateCreator:
 
     def _read_stack_properties(self):
         try:
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
-            print(self._stack_properties)
             with open(self._stack_properties, 'r') as infile:
                 for thing in infile:
                     wrk = thing.split('=')
-                    if wrk[0] == snsTopicARN:
+                    if wrk[0].lower() == snsTopicARN:
                         self._sns_topic_arn_found = True
-                    if wrk[0] == trustedService:
+                    if wrk[0].lower() == trustedService:
                         self._trusted_service_found = True
-                    if wrk[0] == schedule:
+                    if wrk[0].lower() == schedule:
                         self._schedule_found = True
-                    if wrk[0] == service and \
+                    if wrk[0].lower() == service and \
                             len(wrk) == 2 and \
                             wrk[1].lower().strip() == 'true':
                         self._create_service = True

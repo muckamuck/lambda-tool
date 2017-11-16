@@ -250,9 +250,9 @@ class LambdaDeployer:
             timeout = self._ini_data.get(self._stage, {}).get('timeout', '60')
             security_group = self._ini_data.get(self._stage, {}).get('security_group', None)
             subnets = self._ini_data.get(self._stage, {}).get('subnets', None)
-            sns_topic_arn = self._ini_data.get(self._stage, {}).get('snsTopicARN', None)
-            trusted_service = self._ini_data.get(self._stage, {}).get('trustedService', None)
-            lambda_schedule_expression = self._ini_data.get(self._stage, {}).get('scheduleExpression', None)
+            sns_topic_arn = self._ini_data.get(self._stage, {}).get('snstopicarn', None)
+            trusted_service = self._ini_data.get(self._stage, {}).get('trustedservice', None)
+            lambda_schedule_expression = self._ini_data.get(self._stage, {}).get('scheduleexpression', None)
             service = self._ini_data.get(self._stage, {}).get('service', None)
 
             with open(self._stack_properties_file, "w") as outfile:
