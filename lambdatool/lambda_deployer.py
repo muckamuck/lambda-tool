@@ -44,6 +44,8 @@ class LambdaDeployer:
     """
     _config = None
     _ini_data = None
+    _stage = None
+    _work_directory = None
 
     def __init__(self, config_block):
         """
@@ -68,7 +70,7 @@ class LambdaDeployer:
                 raise SystemError
 
             tmp_name = (str(uuid.uuid4()))[:8]
-            self._config['work_directory'] = '{}/{}'.format(
+            self._work_directory = '{}/{}'.format(
                 self._config['work_directory'],
                 tmp_name
             )
@@ -95,11 +97,11 @@ class LambdaDeployer:
                 logging.error('module file {} not found, exiting'.format(DEFAULT_MODULE_FILE))
                 return False
 
-            if not self.read_config_info():
+            if self.read_config_info():
+                logging.info('INI stuff: {}'.format(json.dumps(self._ini_data, indent=2)))
+            else:
                 logging.error('failed to read config/config.ini file, exiting'.format(DEFAULT_MODULE_FILE))
                 return False
-            else:
-                logging.info('INI stuff: {}'.format(json.dumps(self._ini_data, indent=2)))
 
             commit_hash = self.find_commit()
             if commit_hash:
@@ -110,7 +112,7 @@ class LambdaDeployer:
 
             if self.copy_stuff():
                 logging.info('copy_stuff() to scratch directory successful')
-                os.chdir(self._config['work_directory'])
+                os.chdir(self._work_directory)
             else:
                 logging.error('copy_stuff() to scratch directory failed')
                 return False
@@ -172,7 +174,7 @@ class LambdaDeployer:
             )
 
             command_line['destinationBucket'] = self._ini_data.get(self._config['stage'], {}).get('bucket', None)
-            command_line['templateFile'] = '{}/template.yaml'.format(self._config['work_directory'])
+            command_line['templateFile'] = '{}/template.yaml'.format(self._work_directory)
             command_line['tagFile'] = self._config['tag_file']
             command_line['yaml'] = True
             command_line['dryrun'] = False
@@ -201,11 +203,11 @@ class LambdaDeployer:
     def create_template_file(self):
         try:
             function_properties = '{}/config/{}/function.properties'.format(
-                    self._config['work_directory'],
+                    self._work_directory,
                     self._config['stage']
             )
-            stack_properties = '{}/stack.properties'.format(self._config['work_directory'])
-            output_file = '{}/template.yaml'.format(self._config['work_directory'])
+            stack_properties = '{}/stack.properties'.format(self._work_directory)
+            output_file = '{}/template.yaml'.format(self._work_directory)
             template_file = '{}/template_template'.format(self._config['template_directory'])
             templateCreator = TemplateCreator()
             template_created = templateCreator.create_template(
@@ -228,7 +230,7 @@ class LambdaDeployer:
     def create_stack_properties(self):
         try:
             stack_properties_file = '{}/stack.properties'.format(
-                self._config['work_directory']
+                self._work_directory
             )
 
             self._config['stack_properties_file'] = stack_properties_file
@@ -277,7 +279,7 @@ class LambdaDeployer:
     def create_tag_file(self):
         try:
             tag_file = '{}/tag.properties'.format(
-                self._config['work_directory']
+                self._work_directory
             )
 
             self._config['tag_file'] = tag_file
@@ -345,14 +347,14 @@ class LambdaDeployer:
         try:
             shutil.copytree(
                 '.',
-                self._config['work_directory'],
+                self._work_directory,
                 ignore=shutil.ignore_patterns(*IGNORED_STUFF)
             )
 
             shutil.copytree(
                 'config/{}'.format(self._config['stage']),
                 '{}/config/{}'.format(
-                    self._config['work_directory'],
+                    self._work_directory,
                     self._config['stage']
                 )
             )
@@ -429,7 +431,7 @@ class LambdaDeployer:
         try:
             logging.info('adding files with compression mode={}'.format(ZIP_MODES[compression]))
             package_name = '{}/{}.zip'.format(
-                self._config['work_directory'],
+                self._work_directory,
                 self._config['hash']
             )
 
