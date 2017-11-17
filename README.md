@@ -89,4 +89,4 @@ Options:
                         region
   --help                Show this message and exit.
 ```
-* More details AWS profile credentials [here](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).*
+*More details AWS profile credentials [here](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).*
