@@ -31,8 +31,8 @@ def cli():
 
 
 @cli.command()
-@click.option('-d', '--directory')
-@click.option('-n', '--name', required=True)
+@click.option('-d', '--directory', help='target directory for new Lambda, defaults to current directory')
+@click.option('-n', '--name', help='name of the new lambda skeleton', required=True)
 def new(directory, name):
     command_line = {}
     command_line['name'] = name
@@ -50,10 +50,10 @@ def new(directory, name):
 
 
 @cli.command()
-@click.option('-d', '--directory')
-@click.option('-s', '--stage')
-@click.option('-p', '--profile')
-@click.option('-r', '--region')
+@click.option('-d', '--directory', help='scratch directory for deploy, defaults to /tmp')
+@click.option('-s', '--stage', help='environment/stage used to name and deploy the Lambda function, defaults to dev')
+@click.option('-p', '--profile', help='AWS CLI profile to use in the deployment, more details at http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html')
+@click.option('-r', '--region', help='target region, defaults to your credentials default region')
 def deploy(directory, stage, profile, region):
     command_line = {}
 
