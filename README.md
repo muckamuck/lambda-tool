@@ -45,7 +45,7 @@ vi requirements.txt
 
 git init && git add --all && git commit -m init
 deactivate
-workon lamdatool
+workon lamda-tool
 lambdatool deploy
 deactivate
 ```
