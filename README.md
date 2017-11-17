@@ -42,8 +42,8 @@ lambdatool deploy
 deactivate
 ```
 
-## Configuration file notes: <function>/config/config.ini
-At least one section is required in the <function>/config/config.ini file. This is the deployment data for the stage used in:
+## Configuration file notes: .../config/config.ini
+At least one section is required in the .../config/config.ini file. This is the deployment data for the stage used in:
 ```lambdatool deploy```
 
 You can have as many stages as you wish but if you do not specify a stage in deployment *dev* is required.
@@ -61,4 +61,32 @@ snsTopicARN=[OPTIONAL an ARN of an SNS topic to create subscription]
 trustedService=[OPTIONAL an ID of AWS service to be trusted - e.g.: cognito-idp.amazonaws.com]
 scheduleExpression=<OPTIONAL a cron expression to execute the lambda - e.g.: rate(5 minutes)]
 ```
-*More info on scheduling at [here](http://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html)*
+*More info on scheduling [here](http://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html).*
+
+
+## Help text:
+Create a new lambda:
+```
+Usage: lambdatool new [OPTIONS]
+
+Options:
+  -d, --directory TEXT  target directory for new Lambda, defaults to current
+                        directory
+  -n, --name TEXT       name of the new lambda skeleton  [required]
+  --help                Show this message and exit.
+```
+
+Deploy an existing lambda:
+```
+Usage: lambdatool deploy [OPTIONS]
+
+Options:
+  -d, --directory TEXT  scratch directory for deploy, defaults to /tmp
+  -s, --stage TEXT      environment/stage used to name and deploy the Lambda
+                        function, defaults to dev
+  -p, --profile TEXT    AWS CLI profile to use in the deployment
+  -r, --region TEXT     target region, defaults to your credentials default
+                        region
+  --help                Show this message and exit.
+```
+* More details AWS profile credentials [here](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).*
