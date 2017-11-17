@@ -272,16 +272,20 @@ class LambdaDeployer:
                 outfile.write('subnetIds={}\n'.format(subnets))
 
                 if sns_topic_arn:
+                    logging.info('subscribing lambda to SNS topic: {}'.format(sns_topic_arn))
                     outfile.write('snsTopicARN={}\n'.format(sns_topic_arn))
 
                 if trusted_service:
+                    logging.info('the lambda will trust: {}'.format(trusted_service))
                     outfile.write('trustedService={}\n'.format(trusted_service))
 
                 if lambda_schedule_expression:
+                    logging.info('the lambda will be scheduled by: {}'.format(lambda_schedule_expression))
                     outfile.write('scheduleExpression={}\n'.format(lambda_schedule_expression))
 
                 if service:
                     if service.lower() == 'true':
+                        logging.info('the lambda will integrated with an API gateway')
                         outfile.write('service=true\n')
 
             return True
