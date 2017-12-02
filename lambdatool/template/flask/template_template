@@ -1,0 +1,77 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Fantastic Lambda Function
+Parameters:
+  s3Bucket:
+    Description: bucket of the thingy
+    Type: String
+  s3Key:
+    Description: key of the thingy
+    Type: String
+    Default: lambda/something.zip
+  functionName:
+    Description: name of the thingy
+    Type: String
+    Default: something
+  handler:
+    Description: entry point
+    Type: String
+    Default: main.lambda_handler
+  memorySize:
+    Description: memory size
+    Type: String
+    Default: 128
+  role:
+    Description: name of the role
+    Type: String
+    Default: arn:aws:iam::999999999:role/something
+  runTime:
+    Description: run time engine of the thingy
+    Type: String
+    Default: python2.7
+  timeOut:
+    Description: time out in seconds
+    Type: String
+    Default: 60
+  securityGroupIds:
+    Description: list of security groups
+    Type: CommaDelimitedList
+    Default: sg-11111111
+  subnetIds:
+    Description: list of subnets
+    Type: CommaDelimitedList
+    Default: subnet-22222222,subnet-33333333,subnet-44444444
+${snsTopicARN}
+${trustedService}
+${scheduleExpression}
+Resources:
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: s3Bucket
+        S3Key:
+          Ref: s3Key
+${environment_section}
+      FunctionName:
+        Ref: functionName
+      Handler: 
+        Ref: handler
+      MemorySize:
+        Ref: memorySize
+      Role: 
+        Ref: role
+      Runtime: 
+        Ref: runTime
+      Timeout:
+        Ref: timeOut
+      VpcConfig:
+        SecurityGroupIds:
+          Ref: securityGroupIds 
+        SubnetIds:
+          Ref: subnetIds
+${snsSubscriptionResource}
+${trustedServiceResource}
+${scheduleResource}
+${theAPI}
