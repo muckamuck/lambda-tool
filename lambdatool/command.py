@@ -33,7 +33,8 @@ def cli():
 @cli.command()
 @click.option('-d', '--directory', help='target directory for new Lambda, defaults to current directory')
 @click.option('-n', '--name', help='name of the new lambda skeleton', required=True)
-def new(directory, name):
+@click.option('-t', '--type', help='type of lambda, [plain|service]')
+def new(directory, name, lambda_type):
     command_line = {}
     command_line['name'] = name
     command_line['template_directory'] = '{}/template'.format(lambdatool.__path__[0])
@@ -42,6 +43,12 @@ def new(directory, name):
         command_line['directory'] = directory
     else:
         command_line['directory'] = '.'
+
+    if lambda_type:
+        if lambda_type == 'plain' or lambda_type == 'flask':
+            command_line['type'] = lambda_type
+    else:
+        command_line['type'] = 'plain'
 
     if start_new_lambda(command_line):
         sys.exit(0)
