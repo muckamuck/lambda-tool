@@ -100,5 +100,9 @@ Options:
 *More details on AWS profile credentials [here](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).*
 
 
-## Notes
+## TODO:
+Unpin the stackility version
+
+
+## Notes:
 [Manifest notes](http://python-packaging.readthedocs.io/en/latest/non-code-files.html "Title").
