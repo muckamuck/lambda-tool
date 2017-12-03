@@ -2,7 +2,7 @@
 A tool to create and deploy Lambda Functions to AWS (for python things).
 
 
-## Current version - 0.1.0
+## Current version - 0.1.2
 
 * Create a new Python 2.7 AWS Lambda from included template
 * Deploy AWS Lambda created with this tool. It generates a CloudFormation file and creates a stack from that template.
@@ -72,7 +72,7 @@ scheduleExpression= [OPTIONAL a cron expression to execute the lambda - e.g.: ra
 *More info on scheduling [here](http://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html).*
 
 
-## Help text:
+## Usage:
 Create a new lambda:
 ```
 Usage: lambdatool new [OPTIONS]
@@ -81,6 +81,7 @@ Options:
   -d, --directory TEXT  target directory for new Lambda, defaults to current
                         directory
   -n, --name TEXT       name of the new lambda skeleton  [required]
+  -s, --service         create a flask like micro-service
   --help                Show this message and exit.
 ```
 
