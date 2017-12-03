@@ -1,10 +1,26 @@
 from utility import FlaskLambda
+from flask import request
+import json
 
-app = FlaskLambda(__name__)
+'''
+The FlaskLambda object that is created is the entry point for the lambda. The
+LambdaTool deployer expects this to be called 'lambda_handler'
+'''
+lambda_handler = FlaskLambda(__name__)
 
 
-@app.route('/foo', methods=['GET', 'POST'])
+@lambda_handler.route('/foo', methods=['GET', 'POST'])
 def foo():
+    '''
+    A contrived example function that will return some meta-data about the
+    invocation.
+
+    Args:
+        None
+
+    Returns:
+        tuple of (body, status code, content type)
+    '''
     data = {
         'form': request.form.copy(),
         'args': request.args.copy(),
@@ -18,5 +34,4 @@ def foo():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    lambda_handler.run(debug=True)
