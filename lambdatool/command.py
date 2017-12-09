@@ -19,7 +19,7 @@ In {}/{}/config you will find a config.ini file that you should
 fill in with parameters for your own account.
 
 Develop the lambda function as needed then you can deploy it with:
-lambdatool deploy.
+lambdatool deploy. The lambda has been started in main.py.
 '''
 
 
