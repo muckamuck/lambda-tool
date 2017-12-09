@@ -257,9 +257,9 @@ class LambdaCreator:
         with open(file_name, 'w') as ini_file:
             ini_file.write('[dev]\n')
             if 'security_group' in env_info:
-                ini_file.write('secruity_group={}\n'.format(env_info['security_group']))
+                ini_file.write('security_group={}\n'.format(env_info['security_group']))
             else:
-                ini_file.write('secruity_group=\n')
+                ini_file.write('security_group=ADD_SECURITY_GROUP\n')
 
             if 'subnets' in env_info:
                 wrk = str()
@@ -271,13 +271,14 @@ class LambdaCreator:
 
                 ini_file.write('subnets={}\n'.format(wrk))
             else:
-                ini_file.write('subnets=\n')
+                ini_file.write('subnets=ADD_SUBNETS\n')
 
             if 'role' in env_info:
                 ini_file.write('role={}\n'.format(env_info['role']))
             else:
-                ini_file.write('role=\n')
+                ini_file.write('role=ADD_YOUR_LAMBDA_IAM_ROLE\n')
 
             ini_file.write('memory=512\n')
             ini_file.write('service=true\n')
+            ini_file.write('bucket=ADD_YOUR_ARTIFACT_BUCKET\n')
             ini_file.write('\n')
