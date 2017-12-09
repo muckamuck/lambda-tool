@@ -9,8 +9,26 @@ LambdaTool deployer expects this to be called 'lambda_handler'
 lambda_handler = FlaskLambda(__name__)
 
 
-@lambda_handler.route('/foo', methods=['GET', 'POST'])
-def foo():
+@lambda_handler.route('/', methods=['GET'])
+def document():
+    '''
+    Redirect to the README doc
+
+    Args:
+        None
+
+    Returns:
+        tuple of (body, status code, content type) that API Gateway understands
+    '''
+    return (
+        slash_html,
+        200,
+        {'Content-Type': 'text/html'}
+    )
+
+
+@lambda_handler.route('/food', methods=['GET', 'POST'])
+def food():
     '''
     A contrived example function that will return some meta-data about the
     invocation.
@@ -19,7 +37,7 @@ def foo():
         None
 
     Returns:
-        tuple of (body, status code, content type)
+        tuple of (body, status code, content type) that API Gateway understands
     '''
     data = {
         'form': request.form.copy(),
@@ -35,3 +53,12 @@ def foo():
 
 if __name__ == '__main__':
     lambda_handler.run(debug=True)
+
+slash_html = '''<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>The Tudors</title>
+    <meta http-equiv="refresh" content="0;URL='https://github.com/muckamuck/lambda-tool/blob/master/README.md'" />
+  </head>
+  <body></body>
+</html>
+'''
