@@ -131,7 +131,7 @@ class LambdaCreator:
             logger.error('Exception caught in create_lambda(): {}'.format(wtf))
             traceback.print_exc(file=sys.stdout)
 
-        return None
+        return {}
 
     def _find_lambda_role(self):
         try:
@@ -271,7 +271,7 @@ class LambdaCreator:
 
                 ini_file.write('subnets={}\n'.format(wrk))
             else:
-                ini_file.write('subnets=')
+                ini_file.write('subnets=\n')
 
             if 'role' in env_info:
                 ini_file.write('role={}\n'.format(env_info['role']))
