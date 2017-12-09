@@ -4,12 +4,16 @@ import subprocess
 import os
 import sys
 import shutil
+import utility
+import json
+import pdb
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO,
                     format='[%(levelname)s] %(asctime)s (%(module)s) %(message)s',
                     datefmt='%Y/%m/%d-%H:%M:%S')
 
-logging.getLogger().setLevel(logging.INFO)
 IGNORED_STUFF = ('template_template', '*.pyc')
 
 
@@ -18,6 +22,8 @@ class LambdaCreator:
     Lambda utility is yet another tool create and deploy AWS lambda functions
     """
     _config = None
+    _region = None
+    _profile = None
 
     def __init__(self, config_block):
         """
@@ -36,8 +42,10 @@ class LambdaCreator:
         """
         if config_block:
             self._config = config_block
+            self._profile = config_block['profile']
+            self._region = config_block['region']
         else:
-            logging.error('config block was garbage')
+            logger.error('config block was garbage')
             raise SystemError
 
     def create_lambda(self):
@@ -52,10 +60,17 @@ class LambdaCreator:
             False if the lambda is not created for some odd reason
         """
         try:
-            logging.info(self._config)
-            destination_directory = '{}/{}'.format(self._config['directory'], self._config['name'])
-            logging.info('     source_directory: {}'.format(self._config['template_directory']))
-            logging.info('destination_directory: {}'.format(destination_directory))
+            default_vpc_info = self._describe_lambda_environment()
+            logger.debug(json.dumps(self._config, indent=2))
+            logger.debug(json.dumps(default_vpc_info, indent=2))
+
+            destination_directory = '{}/{}'.format(
+                self._config['directory'],
+                self._config['name']
+            )
+
+            logger.info('     source_directory: {}'.format(self._config['template_directory']))
+            logger.info('destination_directory: {}'.format(destination_directory))
 
             shutil.copytree(
                 self._config['template_directory'],
@@ -66,9 +81,134 @@ class LambdaCreator:
 
             return True
         except Exception as x:
-            logging.error('Exception caught in create_lambda(): {}'.format(x))
+            logger.error('Exception caught in create_lambda(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return False
+
+    def _describe_lambda_environment(self):
+        '''
+        Find the default vpc for the given region
+
+        Args:
+            None
+
+        Returns:
+            a dictionary the contains the  vpc ID, list subnets and default
+            security group
+        '''
+        try:
+            vpc_info = {}
+            ec2_client = utility.get_api_client(
+                self._profile,
+                self._region,
+                'ec2'
+            )
+
+            response = ec2_client.describe_vpcs()
+
+            for vpc in response['Vpcs']:
+                if vpc['IsDefault']:
+                    subnets = self._find_default_subnets(vpc['VpcId'])
+                    if subnets:
+                        vpc_info['subnets'] = subnets
+
+                    security_group = self._find_default_security_group(vpc['VpcId'])
+                    if security_group:
+                        vpc_info['security_group'] = security_group
+
+                    lambda_role = self._find_lambda_role()
+                    if lambda_role:
+                        vpc_info['role'] = lambda_role
+
+                    logger.info(json.dumps(vpc_info, indent=2))
+                    return vpc_info
+        except Exception as wtf:
+            logger.error('Exception caught in create_lambda(): {}'.format(wtf))
+            traceback.print_exc(file=sys.stdout)
+
+        return None
+
+    def _find_lambda_role(self):
+        try:
+            if False:
+                pdb.set_trace()
+
+            iam_client = utility.get_api_client(
+                self._profile,
+                self._region,
+                'iam'
+            )
+
+            response = iam_client.list_roles(MaxItems=5)
+            while response:
+                for role in response['Roles']:
+                    if role['RoleName'] == 'lambda_basic_vpc_execution':
+                        logger.info('found role: {}'.format(role['Arn']))
+                        return role['Arn']
+
+                if response['IsTruncated']:
+                    response = iam_client.list_roles(
+                        MaxItems=5,
+                        Marker=response['Marker']
+                    )
+                else:
+                    response = None
+        except Exception as wtf:
+            logger.error('Exception caught in create_lambda(): {}'.format(wtf))
+            traceback.print_exc(file=sys.stdout)
+
+        return None
+
+    def _find_default_security_group(self, vpc_id):
+        try:
+            if False:
+                pdb.set_trace()
+
+            ec2_client = utility.get_api_client(
+                self._profile,
+                self._region,
+                'ec2'
+            )
+
+            response = ec2_client.describe_security_groups(
+                Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}]
+            )
+
+            for sg in response['SecurityGroups']:
+                logger.info('found candidate security group: {}'.format(sg['GroupId']))
+                if sg['GroupName'] == 'default':
+                    logger.info('found security group: {}'.format(sg['GroupId']))
+                    return sg['GroupId']
+        except Exception as wtf:
+            logger.error('Exception caught in create_lambda(): {}'.format(wtf))
+            traceback.print_exc(file=sys.stdout)
+
+        return None
+
+    def _find_default_subnets(self, vpc_id):
+        try:
+            subnets = []
+            ec2_client = utility.get_api_client(
+                self._profile,
+                self._region,
+                'ec2'
+            )
+
+            response = ec2_client.describe_subnets(
+                Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}]
+            )
+
+            for subnet in response['Subnets']:
+                if subnet['DefaultForAz'] == True:
+                    subnets.append(subnet['SubnetId'])
+
+            logger.info('Found subnets: {}'.format(subnets))
+            return subnets
+        except Exception as wtf:
+            logger.error('Exception caught in create_lambda(): {}'.format(wtf))
+            traceback.print_exc(file=sys.stdout)
+
+        return None
 
     def deploy_lambda(self):
         """
@@ -82,14 +222,14 @@ class LambdaCreator:
             False if the lambda is not deployed for some odd reason
         """
         try:
-            logging.info(self._config)
+            logger.info(self._config)
             cwd = os.getcwd()
             dirs = cwd.split('/')
             lambda_name = dirs[-1]
-            logging.info('lambda_name: {}'.format(lambda_name))
+            logger.info('lambda_name: {}'.format(lambda_name))
             return True
         except Exception as x:
-            logging.error('Exception caught in deploy_lambda(): {}'.format(x))
+            logger.error('Exception caught in deploy_lambda(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return False
 
@@ -102,7 +242,7 @@ class LambdaCreator:
                 buf = buf + c
             return p.returncode, buf
         except subprocess.CalledProcessError as x:
-            logging.error('Exception caught in create_lambda(): {}'.format(x))
+            logger.error('Exception caught in create_lambda(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return False
             return x.returncode, None

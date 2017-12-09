@@ -13,8 +13,7 @@ import sys
 import json
 
 default_stage = 'dev'
-fresh_notes = '''
-A skeleton of the new lambda, {}, has been created.
+fresh_notes = '''A skeleton of the new lambda, {}, has been created.
 
 In {}/{}/config you will find a config.ini file that you should
 fill in with parameters for your own account.
@@ -34,7 +33,9 @@ def cli():
 @click.option('-d', '--directory', help='target directory for new Lambda, defaults to current directory')
 @click.option('-n', '--name', help='name of the new lambda skeleton', required=True)
 @click.option('-s', '--service', help='create a flask like micro-service', is_flag=True)
-def new(directory, name, service):
+@click.option('-p', '--profile', help='AWS CLI profile to use in the deployment, more details at http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html')
+@click.option('-r', '--region', help='target region, defaults to your credentials default region')
+def new(directory, name, service, profile, region):
     command_line = {}
     command_line['name'] = name
 
@@ -47,6 +48,16 @@ def new(directory, name, service):
         command_line['directory'] = directory
     else:
         command_line['directory'] = '.'
+
+    if profile:
+        command_line['profile'] = profile
+    else:
+        command_line['profile'] = None
+
+    if region:
+        command_line['region'] = region
+    else:
+        command_line['region'] = None
 
     if start_new_lambda(command_line):
         sys.exit(0)
@@ -99,6 +110,8 @@ def start_new_lambda(command_line):
 
     if tool.create_lambda():
         logging.info('create_new_lambda() went well')
+        print('\n\n\n\n')
+        print('********************************************************************************')
         print(fresh_notes.format(
             command_line['name'],
             command_line['directory'],
