@@ -60,17 +60,21 @@ class LambdaCreator:
             False if the lambda is not created for some odd reason
         """
         try:
-            default_vpc_info = self._describe_lambda_environment()
-            logger.debug(json.dumps(self._config, indent=2))
-            logger.debug(json.dumps(default_vpc_info, indent=2))
-
             destination_directory = '{}/{}'.format(
                 self._config['directory'],
                 self._config['name']
             )
 
-            logger.info('     source_directory: {}'.format(self._config['template_directory']))
-            logger.info('destination_directory: {}'.format(destination_directory))
+            if os.path.exists(destination_directory):
+                print('{} already exists, exiting'.format(destination_directory))
+                sys.exit(1)
+            else:
+                logger.info('     source_directory: {}'.format(self._config['template_directory']))
+                logger.info('destination_directory: {}'.format(destination_directory))
+
+            default_vpc_info = self._describe_lambda_environment()
+            logger.debug(json.dumps(self._config, indent=2))
+            logger.debug(json.dumps(default_vpc_info, indent=2))
 
             shutil.copytree(
                 self._config['template_directory'],
@@ -79,6 +83,7 @@ class LambdaCreator:
                 ignore=shutil.ignore_patterns(*IGNORED_STUFF)
             )
 
+            self.write_config_ini(destination_directory, default_vpc_info)
             return True
         except Exception as x:
             logger.error('Exception caught in create_lambda(): {}'.format(x))
@@ -246,3 +251,33 @@ class LambdaCreator:
             traceback.print_exc(file=sys.stdout)
             return False
             return x.returncode, None
+
+    def write_config_ini(self, destination_directory, env_info):
+        file_name = '{}/config/config.ini'.format(destination_directory)
+        with open(file_name, 'w') as ini_file:
+            ini_file.write('[dev]\n')
+            if 'security_group' in env_info:
+                ini_file.write('secruity_group={}\n'.format(env_info['security_group']))
+            else:
+                ini_file.write('secruity_group=\n')
+
+            if 'subnets' in env_info:
+                wrk = str()
+                for subnet in env_info['subnets']:
+                    if len(wrk) == 0:
+                        wrk = subnet
+                    else:
+                        wrk = '{},{}'.format(wrk, subnet)
+
+                ini_file.write('subnets={}\n'.format(wrk))
+            else:
+                ini_file.write('subnets=')
+
+            if 'role' in env_info:
+                ini_file.write('role={}\n'.format(env_info['role']))
+            else:
+                ini_file.write('role=\n')
+
+            ini_file.write('memory=512\n')
+            ini_file.write('service=true\n')
+            ini_file.write('\n')
