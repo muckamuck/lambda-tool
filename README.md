@@ -2,7 +2,7 @@
 A tool to create and deploy Lambda Functions to AWS (for python things).
 
 
-## Current version - 0.1.2
+## Current version - 0.1.4
 
 * Create a new Python 2.7 AWS Lambda from included template
 * Deploy AWS Lambda created with this tool. It generates a CloudFormation file and creates a stack from that template.
@@ -69,6 +69,10 @@ snsTopicARN=        [OPTIONAL an ARN of an SNS topic to create subscription]
 trustedService=     [OPTIONAL an ID of AWS service to be trusted - e.g.: cognito-idp.amazonaws.com]
 scheduleExpression= [OPTIONAL a cron expression to execute the lambda - e.g.: rate(5 minutes)]
 ```
+
+The ```new``` command makes a best effort to fill in the blanks in the ```config.ini``` file. If there is no default VPC this attempt
+will not go well. *Note: you will need to open the config.ini file and add an S3 bucket to store artifacts*
+
 *More info on scheduling [here](http://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html).*
 
 
