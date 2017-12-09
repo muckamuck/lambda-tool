@@ -382,14 +382,19 @@ class LambdaDeployer:
             return False
 
     def set_hash(self):
+        random_bits = []
+        random_bits.append((str(uuid.uuid4()))[:8])
+        random_bits.append((str(uuid.uuid4()))[:8])
+
         try:
             repo = git.Repo(search_parent_directories=False)
             hash = repo.head.object.hexsha
             hash = hash[:8]
-            self._hash = hash
-            return True
         except Exception:
-            return False
+            hash = random_bits[1]
+
+        self._hash = '{}-{}'.format(hash, random_bits[1])
+        return True
 
     def verify_lambda_directory(self):
 
