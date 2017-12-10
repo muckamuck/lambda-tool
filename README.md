@@ -4,7 +4,7 @@ A tool to create and deploy Lambda Functions to AWS (for python things).
 
 ## Current version - 0.1.7
 
-* Create a new Python 2.7 AWS Lambda from included template
+* Create a new Python 2.7 AWS Lambda from included template. Either a simple lambda function or a Flask based microservice.
 * Deploy AWS Lambda created with this tool. It generates a CloudFormation file and creates a stack from that template.
 * Optionally, integrate the new lambda with an AWS API Gateway
 * Optionally, subscribe the new lambda to an SNS topic
@@ -51,6 +51,7 @@ lambdatool deploy --region us-east-2
 * An AWS account
 * A VPC setup in that account (or access to create one)
 * At least one subnet in that account (or access to create one)
+* An IAM role to assign to the lambda. 
 * A very simple security group
 * An S3 bucket where you can put build/deployment artifacts
 * A minimal Python 2.7 development environment including virtualenv or virtualenv wrapper
@@ -86,7 +87,7 @@ git init && git add --all && git commit -m init
 lambdatool deploy
 deactivate
 ```
-See more about AWS default VPC [here](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/default-vpc.html). 
+See more about AWS default VPC [here](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/default-vpc.html). If you do not have a suitable IAM role you can get some idea [here](http://docs.aws.amazon.com/lambda/latest/dg/vpc-rds-create-iam-role.html).
 
 *Note: if your account was created BEFORE 12/04/2013 you will not have a default VPC in AWS regions that existed then. What does this mean? You will be required to make a VPC, subnets and a security group for your adventure.*
 
@@ -119,6 +120,7 @@ will not go well. *Note: you will need to open the config.ini file and add an S3
 ## TODO:
 
 * Unpin the stackility version
+* Create templates or guidance to create the VPC, subnets, security group etc.
 
 
 ## Notes:
