@@ -10,6 +10,41 @@ A tool to create and deploy Lambda Functions to AWS (for python things).
 * Optionally, subscribe the new lambda to an SNS topic
 * Optionally, trust an arbitrary AWS service like cognito or S3
 
+## Usage:
+Create a new lambda:
+```
+Usage: lambdatool new [OPTIONS]
+
+Options:
+  -d, --directory TEXT  target directory for new Lambda, defaults to current
+                        directory
+  -n, --name TEXT       name of the new lambda skeleton  [required]
+  -s, --service         create a flask like micro-service
+  --help                Show this message and exit.
+
+Example:
+lambdatool -sn example --region us-east-2 # make a Flask webservice in example/main.py
+```
+
+Deploy an existing lambda:
+```
+Usage: lambdatool deploy [OPTIONS]
+
+Options:
+  -d, --directory TEXT  scratch directory for deploy, defaults to /tmp
+  -s, --stage TEXT      environment/stage used to name and deploy the Lambda
+                        function, defaults to dev
+  -p, --profile TEXT    AWS CLI profile to use in the deployment
+  -r, --region TEXT     target region, defaults to your credentials default
+                        region
+  --help                Show this message and exit.
+  
+Example:
+lambdatool deploy --region us-east-2 
+```
+*More details on AWS profile credentials [here](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).*
+
+
 ## What you will need to use this
 
 * An AWS account
@@ -21,31 +56,32 @@ A tool to create and deploy Lambda Functions to AWS (for python things).
 
 ## Workflow
 
-You will need two virtual environments. One to use ```lambdatool``` and one to do development on your Lambda function's code. So a transript may look like:
-
+Here is a possible workflow for creating the deployment of a new service with AWS Lambda/API Gateway
 ```
 # Assume you are working on fantastic-function
-mkvirtualenv lambda-tool
+mkvirtualenv fantastic-function
 pip install LambdaTool
-lambdatool new --name fantastic-function
-deactivate
+lambdatool new -sn fantastic-function
 
 # Implement your function
-mkvirtualenv fantastic-function
 cd fantastic-function
 
-# fill in the INI file with your account info
+# Fill in the INI file with your account info
+# If you have a default VPC most of the bits have been placed
+# in config/config.ini. You will probably need to just supply
+# an S3 bucket in which lambdatool can place artifacts.
 vi config/config.ini
 
-# actually implement your idea
-vi main.py
+# Actually implement your idea
+vi main.py # LambdaTool depends on the main file being called main.py
+           # and that the the thing called lambda_handler remain 
+           # called lambda_handler.
 
-# fill in all the modules needed by your function
+# Fill in all the modules needed by your function
 vi requirements.txt
 
+# I encourage the use of revision control 
 git init && git add --all && git commit -m init
-deactivate
-workon lamda-tool
 lambdatool deploy
 deactivate
 ```
@@ -76,39 +112,9 @@ will not go well. *Note: you will need to open the config.ini file and add an S3
 *More info on scheduling [here](http://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html).*
 
 
-## Usage:
-Create a new lambda:
-```
-Usage: lambdatool new [OPTIONS]
-
-Options:
-  -d, --directory TEXT  target directory for new Lambda, defaults to current
-                        directory
-  -n, --name TEXT       name of the new lambda skeleton  [required]
-  -s, --service         create a flask like micro-service
-  --help                Show this message and exit.
-```
-
-Deploy an existing lambda:
-```
-Usage: lambdatool deploy [OPTIONS]
-
-Options:
-  -d, --directory TEXT  scratch directory for deploy, defaults to /tmp
-  -s, --stage TEXT      environment/stage used to name and deploy the Lambda
-                        function, defaults to dev
-  -p, --profile TEXT    AWS CLI profile to use in the deployment
-  -r, --region TEXT     target region, defaults to your credentials default
-                        region
-  --help                Show this message and exit.
-```
-*More details on AWS profile credentials [here](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).*
-
-
 ## TODO:
 
 * Unpin the stackility version
-* Read the parameters and set them into envirionment
 
 
 ## Notes:
