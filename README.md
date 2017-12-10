@@ -9,6 +9,7 @@ A tool to create and deploy Lambda Functions to AWS (for python things).
 * Optionally, integrate the new lambda with an AWS API Gateway
 * Optionally, subscribe the new lambda to an SNS topic
 * Optionally, trust an arbitrary AWS service like cognito or S3
+* Optionally, create a Flask microservice function
 
 ## Usage:
 Create a new lambda:
