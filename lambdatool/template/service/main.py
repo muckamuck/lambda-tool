@@ -1,6 +1,7 @@
 from utility import FlaskLambda
 from flask import request
 import json
+import os
 
 '''
 The FlaskLambda object that is created is the entry point for the lambda. The
@@ -22,6 +23,24 @@ def document():
     '''
     return (
         slash_html,
+        200,
+        {'Content-Type': 'text/html'}
+    )
+
+
+@lambda_handler.route('/answer', methods=['GET'])
+def get_answer():
+    '''
+    Example of getting someething from function.properties
+
+    Args:
+        None
+
+    Returns:
+        tuple of (body, status code, content type) that API Gateway understands
+    '''
+    return (
+        os.environ.get('ANSWER', '0'),
         200,
         {'Content-Type': 'text/html'}
     )
@@ -56,7 +75,7 @@ if __name__ == '__main__':
 
 slash_html = '''<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>The Tudors</title>
+    <title>Lambtool Readme</title>
     <meta http-equiv="refresh" content="0;URL='https://github.com/muckamuck/lambda-tool/blob/master/README.md'" />
   </head>
   <body></body>
