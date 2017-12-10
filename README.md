@@ -53,7 +53,7 @@ lambdatool deploy --region us-east-2
 * At least one subnet in that account (or access to create one)
 * An IAM role to assign to the lambda. If you do not have a suitable IAM role you can get some idea [here](http://docs.aws.amazon.com/lambda/latest/dg/vpc-rds-create-iam-role.html).
 * A very simple security group
-* An S3 bucket where you can put build/deployment artifacts
+* An S3 bucket where you can put build/deployment artifacts. This bucket **must** be in the same AWS region as your function.
 * A minimal Python 2.7 development environment including virtualenv or virtualenv wrapper
 
 ## Sample workflow:
