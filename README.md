@@ -2,7 +2,7 @@
 A tool to create and deploy Lambda Functions to AWS (for python things).
 
 
-## Current version - 0.1.7
+## Current version - 0.1.7:
 
 * Create a new Python 2.7 AWS Lambda from included template. Either a simple lambda function or a Flask based microservice.
 * Deploy AWS Lambda created with this tool. It generates a CloudFormation file and creates a stack from that template.
@@ -46,7 +46,7 @@ lambdatool deploy --region us-east-2
 *More details on AWS profile credentials [here](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).*
 
 
-## What you will need to use this
+## What you will need:
 
 * An AWS account
 * A VPC setup in that account (or access to create one). See more about AWS default VPC [here](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/default-vpc.html). 
@@ -56,7 +56,7 @@ lambdatool deploy --region us-east-2
 * An S3 bucket where you can put build/deployment artifacts
 * A minimal Python 2.7 development environment including virtualenv or virtualenv wrapper
 
-## Workflow
+## Sample workflow:
 
 Here is a possible workflow for creating the deployment of a new service with AWS Lambda/API Gateway
 ```
