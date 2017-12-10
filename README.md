@@ -86,6 +86,9 @@ git init && git add --all && git commit -m init
 lambdatool deploy
 deactivate
 ```
+See more about AWS default VPC [here](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/default-vpc.html). 
+
+*Note: if your account was created BEFORE 12/04/2013 you will not have a default VPC in AWS regions that existed then. What does this mean? You will be required to make a VPC, subnets and a security group for your adventure.*
 
 ## Configuration file notes: .../config/config.ini
 At least one section is required in the .../config/config.ini file. This is the deployment data for the stage used in:
