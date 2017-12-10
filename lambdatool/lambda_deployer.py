@@ -11,6 +11,7 @@ import shutil
 import zipfile
 import utility #noqa
 import ConfigParser
+from stack_tool import StackTool
 from template_creator import TemplateCreator
 from stackility import CloudStackUtility
 
@@ -178,11 +179,12 @@ class LambdaDeployer:
     def create_stack(self):
         try:
             command_line = {}
-            command_line['stackName'] = 'lambda-{}-{}'.format(
+            stack_name = 'lambda-{}-{}'.format(
                 self._lambda_name,
                 self._stage
             )
 
+            command_line['stackName'] = stack_name
             command_line['destinationBucket'] = self._ini_data.get(self._stage, {}).get('bucket', None)
             command_line['templateFile'] = '{}/template.yaml'.format(self._work_directory)
             command_line['tagFile'] = self._tag_file
@@ -198,6 +200,8 @@ class LambdaDeployer:
                 logging.info('stack create/update was started successfully.')
                 if stack_driver.poll_stack():
                     logging.info('stack create/update was finished successfully.')
+                    st = StackTool(stack_name, self._stage, self._profile, self._region)
+                    st.print_stack_info()
                     return True
                 else:
                     logging.error('stack create/update was did not go well.')

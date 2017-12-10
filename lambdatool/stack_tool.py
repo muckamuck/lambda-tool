@@ -9,12 +9,14 @@ class StackTool(object):
 
     def __init__(self, stack_name, stage, profile, region):
         """
-        Lambda deployer init method.
+        StackTool is a simple tool to print some specific data about a
+        CloudFormation stack.
 
         Args:
-            config_block - a dictionary created in the CLI driver. See that
-                           script for the things that are required and
-                           optional.
+            stack_name - name of the stack of interest
+            stage - the supplied stage/environment
+            profile - AWS credential profile (may be None)
+            region - AWS region where the stack was created
 
         Returns:
            not a damn thing
