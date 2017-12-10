@@ -106,7 +106,9 @@ Options:
 
 
 ## TODO:
-Unpin the stackility version
+
+* Unpin the stackility version
+* Read the parameters and set them into envirionment
 
 
 ## Notes:
