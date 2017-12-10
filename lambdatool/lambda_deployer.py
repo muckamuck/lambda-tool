@@ -397,7 +397,7 @@ class LambdaDeployer:
         except Exception:
             hash = random_bits[1]
 
-        self._hash = '{}-{}'.format(hash, random_bits[1])
+        self._hash = '{}-{}'.format(hash, random_bits[0])
         return True
 
     def verify_lambda_directory(self):
@@ -440,10 +440,12 @@ class LambdaDeployer:
 
     def find_data(self, the_dir):
         tree = []
+        package_file_name = (self._package_name.split('/'))[-1]
         try:
             for folder, subs, files in os.walk(the_dir):
                 for file in files:
-                    tree.append('{}/{}'.format(folder, file))
+                    if file != package_file_name:
+                        tree.append('{}/{}'.format(folder, file))
         except Exception:
             pass
 
