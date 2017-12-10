@@ -49,9 +49,9 @@ lambdatool deploy --region us-east-2
 ## What you will need to use this
 
 * An AWS account
-* A VPC setup in that account (or access to create one)
+* A VPC setup in that account (or access to create one). See more about AWS default VPC [here](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/default-vpc.html). 
 * At least one subnet in that account (or access to create one)
-* An IAM role to assign to the lambda. 
+* An IAM role to assign to the lambda. If you do not have a suitable IAM role you can get some idea [here](http://docs.aws.amazon.com/lambda/latest/dg/vpc-rds-create-iam-role.html).
 * A very simple security group
 * An S3 bucket where you can put build/deployment artifacts
 * A minimal Python 2.7 development environment including virtualenv or virtualenv wrapper
@@ -87,7 +87,6 @@ git init && git add --all && git commit -m init
 lambdatool deploy
 deactivate
 ```
-See more about AWS default VPC [here](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/default-vpc.html). If you do not have a suitable IAM role you can get some idea [here](http://docs.aws.amazon.com/lambda/latest/dg/vpc-rds-create-iam-role.html).
 
 *Note: if your account was created BEFORE 12/04/2013 you will not have a default VPC in AWS regions that existed then. What does this mean? You will be required to make a VPC, subnets and a security group for your adventure.*
 
