@@ -84,9 +84,7 @@ class LambdaDeployer:
             self._profile = config_block['profile']
             self._region = config_block['region']
             self._template_directory = config_block['template_directory']
-            self._s3_client = utility.get_api_client(self._profile, self._region, 's3')
-            self._cf_client = utility.get_api_client(self._profile, self._region, 'cloudformation')
-            self._ssm_client = utility.get_api_client(self._profile, self._region, 'ssm')
+            self._init_boto3_clients()
         else:
             logging.error('config block was garbage')
             raise SystemError
@@ -406,7 +404,6 @@ class LambdaDeployer:
         return True
 
     def verify_lambda_directory(self):
-
         return os.path.isfile(DEFAULT_MODULE_FILE)
 
     def find_lambda_name(self):
@@ -506,3 +503,30 @@ class LambdaDeployer:
             logging.error('Exception caught in read_config_info(): {}'.format(wtf))
             traceback.print_exc(file=sys.stdout)
             return None
+
+    def _init_boto3_clients(self):
+        """
+        The utililty requires boto3 clients to SSM, Cloud Formation and S3. Here is
+        where we make them.
+
+        Args:
+            None
+
+        Returns:
+            Good or Bad; True or False
+        """
+        try:
+            if self._profile:
+                self._b3Sess = boto3.session.Session(profile_name=self._profile)
+            else:
+                self._b3Sess = boto3.session.Session()
+
+            self._s3_client = self._b3Sess.client('s3')
+            self._cf_client = self._b3Sess.client('cloudformation', region_name=self._region)
+            self._ssm_client = self._b3Sess.client('ssm', region_name=self._region)
+
+            return True
+        except Exception as wtf:
+            logging.error('Exception caught in intialize_session(): {}'.format(wtf))
+            traceback.print_exc(file=sys.stdout)
+            return False
