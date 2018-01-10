@@ -118,7 +118,6 @@ will not go well. *Note: you will need to open the config.ini file and add an S3
 
 ## TODO:
 
-* Unpin the stackility version
 * Create templates or guidance to create the VPC, subnets, security group etc.
 
 
