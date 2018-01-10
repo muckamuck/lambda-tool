@@ -1,13 +1,10 @@
-import utility
-
-
 class StackTool(object):
     _cf_client = None
     _stack_name = None
     _stage = None
     _region = None
 
-    def __init__(self, stack_name, stage, profile, region):
+    def __init__(self, stack_name, stage, profile, region, cf_client):
         """
         StackTool is a simple tool to print some specific data about a
         CloudFormation stack.
@@ -28,11 +25,7 @@ class StackTool(object):
             self._stack_name = stack_name
             self._stage = stage
             self._region = region
-            self.__cf_client = utility.get_api_client(
-                profile,
-                region,
-                'cloudformation'
-            )
+            self._cf_client = cf_client
         except Exception:
             raise SystemError
 
@@ -50,7 +43,7 @@ class StackTool(object):
             rest_api_id = None
             deployment_found = False
 
-            response = self.__cf_client.describe_stack_resources(
+            response = self._cf_client.describe_stack_resources(
                 StackName=self._stack_name
             )
 

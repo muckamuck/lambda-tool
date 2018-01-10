@@ -53,8 +53,10 @@ class LambdaDeployer:
     _lambda_name = None
     _hash = None
     _tag_file = None
-    _stack_properties_file = None
+    _stack_properties = {}
     _template_directory = None
+    _s3_client = None
+    _ssm_client = None
 
     def __init__(self, config_block):
         """
@@ -82,6 +84,9 @@ class LambdaDeployer:
             self._profile = config_block['profile']
             self._region = config_block['region']
             self._template_directory = config_block['template_directory']
+            self._s3_client = utility.get_api_client(self._profile, self._region, 's3')
+            self._cf_client = utility.get_api_client(self._profile, self._region, 'cloudformation')
+            self._ssm_client = utility.get_api_client(self._profile, self._region, 'ssm')
         else:
             logging.error('config block was garbage')
             raise SystemError
@@ -178,29 +183,43 @@ class LambdaDeployer:
 
     def create_stack(self):
         try:
-            command_line = {}
+            ini_data = {}
+            ini_data['environment'] = {}
+            ini_data['tags'] = {}
+            ini_data['parameters'] = {}
+
             stack_name = 'lambda-{}-{}'.format(
                 self._lambda_name,
                 self._stage
             )
 
-            command_line['stackName'] = stack_name
-            command_line['destinationBucket'] = self._ini_data.get(self._stage, {}).get('bucket', None)
-            command_line['templateFile'] = '{}/template.yaml'.format(self._work_directory)
-            command_line['tagFile'] = self._tag_file
-            command_line['yaml'] = True
-            command_line['dryrun'] = False
-            command_line['parameterFile'] = self._stack_properties_file
-            command_line['codeVersion'] = self._hash
-            command_line['profile'] = self._profile
-            command_line['region'] = self._region
+            tmp_env = self._ini_data[self._stage]
+            ini_data['environment']['template'] = '{}/template.yaml'.format(self._work_directory)
+            ini_data['environment']['bucket'] = tmp_env['bucket']
+            ini_data['environment']['stack_name'] = stack_name
+            ini_data['codeVersion'] = self._hash
+            if self._region:
+                ini_data['environment']['region'] = self._region
 
-            stack_driver = CloudStackUtility(command_line)
+            if self._profile:
+                ini_data['environment']['profile'] = self._profile
+
+            ini_data['tags'] = {'tool': 'lambdatool'}
+            ini_data['parameters'] = self._stack_properties
+            ini_data['yaml'] = True
+
+            stack_driver = CloudStackUtility(ini_data)
             if stack_driver.upsert():
                 logging.info('stack create/update was started successfully.')
                 if stack_driver.poll_stack():
                     logging.info('stack create/update was finished successfully.')
-                    st = StackTool(stack_name, self._stage, self._profile, self._region)
+                    st = StackTool(
+                        stack_name,
+                        self._stage,
+                        self._profile,
+                        self._region,
+                        self._cf_client,
+                    )
                     st.print_stack_info()
                     return True
                 else:
@@ -220,13 +239,12 @@ class LambdaDeployer:
                     self._work_directory,
                     self._stage
             )
-            stack_properties = '{}/stack.properties'.format(self._work_directory)
             output_file = '{}/template.yaml'.format(self._work_directory)
             template_file = '{}/template_template'.format(self._template_directory)
-            templateCreator = TemplateCreator()
+            templateCreator = TemplateCreator(self._ssm_client)
             template_created = templateCreator.create_template(
                 function_properties=function_properties,
-                stack_properties=stack_properties,
+                stack_properties=self._stack_properties,
                 output_file=output_file,
                 template_file=template_file,
                 region=self._region,
@@ -243,11 +261,6 @@ class LambdaDeployer:
 
     def create_stack_properties(self):
         try:
-            self._stack_properties_file = '{}/stack.properties'.format(
-                self._work_directory
-            )
-
-            logging.info('creating stack properties file: {}'.format(self._stack_properties_file))
             bucket = self._ini_data.get(self._stage, {}).get('bucket', None)
             memory_size = self._ini_data.get(self._stage, {}).get('memory', '128')
             role = self._ini_data.get(self._stage, {}).get('role', None)
@@ -259,38 +272,36 @@ class LambdaDeployer:
             lambda_schedule_expression = self._ini_data.get(self._stage, {}).get('scheduleexpression', None)
             service = self._ini_data.get(self._stage, {}).get('service', None)
 
-            with open(self._stack_properties_file, "w") as outfile:
-                outfile.write('s3Bucket={}\n'.format(bucket))
-                outfile.write('s3Key={}\n'.format(self._package_key))
-                outfile.write('functionName={}-{}\n'.format(
-                        self._lambda_name,
-                        self._stage
-                    )
-                )
-                outfile.write('handler=main.lambda_handler\n')
-                outfile.write('runTime={}\n'.format(PYTHON))
-                outfile.write('memorySize={}\n'.format(memory_size))
-                outfile.write('role={}\n'.format(role))
-                outfile.write('timeOut={}\n'.format(timeout))
-                outfile.write('securityGroupIds={}\n'.format(security_group))
-                outfile.write('subnetIds={}\n'.format(subnets))
+            wrk = {}
+            wrk['s3Bucket'] = bucket
+            wrk['s3Key'] = self._package_key
+            wrk['functionName'] = '{}-{}'.format(self._lambda_name, self._stage)
+            wrk['handler'] = 'main.lambda_handler'
+            wrk['runTime'] = PYTHON
+            wrk['memorySize'] = memory_size
+            wrk['role'] = role
+            wrk['timeOut'] = timeout
+            wrk['securityGroupIds'] = security_group
+            wrk['subnetIds'] = subnets
 
-                if sns_topic_arn:
-                    logging.info('subscribing lambda to SNS topic: {}'.format(sns_topic_arn))
-                    outfile.write('snsTopicARN={}\n'.format(sns_topic_arn))
+            if sns_topic_arn:
+                logging.info('subscribing lambda to SNS topic: {}'.format(sns_topic_arn))
+                wrk['snsTopicARN'] = sns_topic_arn
 
-                if trusted_service:
-                    logging.info('the lambda will trust: {}'.format(trusted_service))
-                    outfile.write('trustedService={}\n'.format(trusted_service))
+            if trusted_service:
+                logging.info('the lambda will trust: {}'.format(trusted_service))
+                wrk['trustedService'] = trusted_service
 
-                if lambda_schedule_expression:
-                    logging.info('the lambda will be scheduled by: {}'.format(lambda_schedule_expression))
-                    outfile.write('scheduleExpression={}\n'.format(lambda_schedule_expression))
+            if lambda_schedule_expression:
+                logging.info('the lambda will be scheduled by: {}'.format(lambda_schedule_expression))
+                wrk['scheduleExpression'] = lambda_schedule_expression
 
-                if service:
-                    if service.lower() == 'true':
-                        logging.info('the lambda will integrated with an API gateway')
-                        outfile.write('service=true\n')
+            if service:
+                if service.lower() == 'true':
+                    logging.info('the lambda will integrated with an API gateway')
+                    wrk['service'] = 'true'
+
+            self._stack_properties = wrk
 
             return True
         except Exception as x:
@@ -331,14 +342,8 @@ class LambdaDeployer:
             if not self._region:
                 self._region = boto3.session.Session().region_name
 
-            s3_client = utility.get_api_client(
-                self._profile,
-                self._region,
-                's3'
-            )
-
             bucket = self._ini_data.get(self._stage, {}).get('bucket', None)
-            if s3_client:
+            if self._s3_client:
                 logging.info('S3 client allocated')
                 logging.info('preparing upload to s3://{}/{}'.format(bucket, self._package_key))
             else:
@@ -347,7 +352,7 @@ class LambdaDeployer:
 
             if bucket:
                 with open(self._package_name, 'rb') as the_package:
-                    s3_client.upload_fileobj(the_package, bucket, self._package_key)
+                    self._s3_client.upload_fileobj(the_package, bucket, self._package_key)
             else:
                 logging.error('S3 bucket not found in config/config.ini')
                 return False

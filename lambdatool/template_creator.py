@@ -96,19 +96,26 @@ class TemplateCreator:
     _stage_name = None
     _short_name = None
     _account = None
+    _ssm_client = None
+    SSM = '[ssm:'
 
     _food = """      Environment:
         Variables:
 """
+
+    def __init__(self, ssm_client):
+        self._ssm_client = ssm_client
 
     def _prop_to_yaml(self, thing):
         idx = thing.find('=')
         if idx > -1:
             key = thing[:idx]
             val = thing[(idx+1):].strip()
-            return key, val
-        else:
-            return None, None
+            val = self._get_ssm_parameter(val)
+            if val:
+                return key, val
+
+        return None, None
 
     def _inject_stuff(self):
         try:
@@ -174,19 +181,23 @@ class TemplateCreator:
 
     def _read_stack_properties(self):
         try:
-            with open(self._stack_properties, 'r') as infile:
-                for thing in infile:
-                    wrk = thing.split('=')
-                    if wrk[0].lower() == snsTopicARN:
-                        self._sns_topic_arn_found = True
-                    if wrk[0].lower() == trustedService:
-                        self._trusted_service_found = True
-                    if wrk[0].lower() == schedule:
-                        self._schedule_found = True
-                    if wrk[0].lower() == service and \
-                            len(wrk) == 2 and \
-                            wrk[1].lower().strip() == 'true':
-                        self._create_service = True
+            lowered_stack_properties = {}
+            for key in self._stack_properties:
+                lowered_key = key.lower()
+                lowered_stack_properties[lowered_key] = self._stack_properties[key]
+
+            if snsTopicARN in lowered_stack_properties:
+                self._sns_topic_arn_found = True
+
+            if trustedService in lowered_stack_properties:
+                self._trusted_service_found = True
+
+            if schedule in lowered_stack_properties:
+                self._schedule_found = True
+
+            tmp = lowered_stack_properties.get(service, 'false').lower()
+            if tmp == 'true':
+                self._create_service = True
         except Exception as wtf:
             logging.error('Exception caught in read_stack_properties(): {}'.format(wtf))
             sys.exit(1)
@@ -210,6 +221,45 @@ class TemplateCreator:
         except Exception as wtf:
             logging.error(wtf)
             return False
+
+    def _get_ssm_parameter(self, p):
+        """
+        Get parameters from Simple Systems Manager
+
+        Args:
+            p - a parameter name
+
+        Returns:
+            a value, decrypted if needed, if successful or None if things go
+            sideways.
+        """
+        val = None
+        secure_string = False
+        try:
+            if p.startswith(self.SSM) and p.endswith(']'):
+                parts = p.split(':')
+                p = parts[1].replace(']', '')
+            else:
+                return p
+
+            response = self._ssm_client.describe_parameters(
+                Filters=[{'Key': 'Name', 'Values': [p]}]
+            )
+
+            if 'Parameters' in response:
+                t = response['Parameters'][0].get('Type', None)
+                if t == 'String':
+                    secure_string = False
+                elif t == 'SecureString':
+                    secure_string = True
+
+                response = self._ssm_client.get_parameter(Name=p, WithDecryption=secure_string)
+                val = response.get('Parameter', {}).get('Value', None)
+        except Exception:
+            pass
+
+        return val
+
 
 if __name__ == '__main__':
     templateCreator = TemplateCreator()
