@@ -6,7 +6,6 @@ import sys
 import shutil
 import utility
 import json
-import pdb
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -135,9 +134,6 @@ class LambdaCreator:
 
     def _find_lambda_role(self):
         try:
-            if False:
-                pdb.set_trace()
-
             iam_client = utility.get_api_client(
                 self._profile,
                 self._region,
@@ -166,9 +162,6 @@ class LambdaCreator:
 
     def _find_default_security_group(self, vpc_id):
         try:
-            if False:
-                pdb.set_trace()
-
             ec2_client = utility.get_api_client(
                 self._profile,
                 self._region,
