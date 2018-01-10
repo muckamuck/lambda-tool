@@ -130,6 +130,7 @@ def deploy_lambda(command_line):
 
     if tool.deploy_lambda():
         logging.info('deploy_lambda() went well')
+        return True
     else:
         logging.error('deploy_lambda() did not go well')
         sys.exit(1)
