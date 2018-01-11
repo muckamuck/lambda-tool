@@ -83,6 +83,16 @@ class LambdaCreator:
             )
 
             self.write_config_ini(destination_directory, default_vpc_info)
+
+            dot_lambdatool = '{}/.lambdatool'.format(destination_directory)
+            meta_data = None
+            with open(dot_lambdatool, 'r') as f:
+                meta_data = json.load(f)
+                meta_data['name'] = self._config['name']
+
+            with open(dot_lambdatool, 'w') as f:
+                json.dump(meta_data, f, indent=4)
+
             return True
         except Exception as x:
             logger.error('Exception caught in create_lambda(): {}'.format(x))

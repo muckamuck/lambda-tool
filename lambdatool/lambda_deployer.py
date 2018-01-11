@@ -186,9 +186,9 @@ class LambdaDeployer:
             ini_data['tags'] = {}
             ini_data['parameters'] = {}
 
-            stack_name = 'lambda-{}-{}'.format(
-                self._lambda_name,
-                self._stage
+            stack_name = '{}-lambda-{}'.format(
+                self._stage,
+                self._lambda_name
             )
 
             tmp_env = self._ini_data[self._stage]
@@ -407,11 +407,18 @@ class LambdaDeployer:
         return os.path.isfile(DEFAULT_MODULE_FILE)
 
     def find_lambda_name(self):
+        lambdatool = '.lambdatool'
         lambda_name = None
         try:
-            cwd = os.getcwd()
-            dirs = cwd.split('/')
-            lambda_name = dirs[-1]
+            with open(lambdatool, 'r') as j:
+                stuff = json.load(j)
+                lambda_name = stuff['name']
+
+            if not lambda_name:
+                cwd = os.getcwd()
+                dirs = cwd.split('/')
+                lambda_name = dirs[-1]
+
             logging.info('lambda_name: {}'.format(lambda_name))
         except Exception as x:
             logging.error('Exception caught in deploy_lambda(): {}'.format(x))
