@@ -255,8 +255,8 @@ class TemplateCreator:
 
                 response = self._ssm_client.get_parameter(Name=p, WithDecryption=secure_string)
                 val = response.get('Parameter', {}).get('Value', None)
-        except Exception:
-            pass
+        except Exception as wtf:
+            logging.error('Exception caught in _get_ssm_parameter({}): {}'.format(p, wtf))
 
         return val
 
