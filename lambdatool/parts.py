@@ -12,7 +12,7 @@ the_api = """  theAPI:
         swagger: "2.0"
         info:
           version: "2017-11-15T16:30:51Z"
-          title: "{short_name}"
+          title: "{short_name}-{stage_name}"
         host: "ozi3yy5k9a.execute-api.{region}.amazonaws.com"
         basePath: "/{stage_name}"
         schemes:
