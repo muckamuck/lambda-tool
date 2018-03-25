@@ -21,10 +21,6 @@ Parameters:
     Description: memory size
     Type: String
     Default: 128
-  role:
-    Description: name of the role
-    Type: String
-    Default: arn:aws:iam::999999999:role/something
   runTime:
     Description: run time engine of the thingy
     Type: String
@@ -33,14 +29,9 @@ Parameters:
     Description: time out in seconds
     Type: String
     Default: 60
-  securityGroupIds:
-    Description: list of security groups
-    Type: CommaDelimitedList
-    Default: sg-11111111
-  subnetIds:
-    Description: list of subnets
-    Type: CommaDelimitedList
-    Default: subnet-22222222,subnet-33333333,subnet-44444444
+${subnetsParameterSection}
+${sgParameterSection}
+${roleParameterSection}
 ${snsTopicARN}
 ${trustedService}
 ${scheduleExpression}
@@ -61,16 +52,18 @@ ${environment_section}
       MemorySize:
         Ref: memorySize
       Role: 
-        Ref: role
+        # Ref: role if given as a parameter
+        # Fn::ImportValue: <something> if given as an import
+        ${roleSpecification}
       Runtime: 
         Ref: runTime
       Timeout:
         Ref: timeOut
       VpcConfig:
         SecurityGroupIds:
-          Ref: securityGroupIds 
+          ${securityGroupIds)
         SubnetIds:
-          Ref: subnetIds
+          ${subnetIds}
 ${snsSubscriptionResource}
 ${trustedServiceResource}
 ${scheduleResource}

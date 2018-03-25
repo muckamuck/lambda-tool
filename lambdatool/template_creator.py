@@ -2,9 +2,13 @@ from mako.template import Template
 from mako.runtime import Context
 from StringIO import StringIO
 from parts import get_the_api_chunk
+from cf_import_things import role_parameter_section
+from cf_import_things import parameter_role_spec
+from cf_import_things import imported_role_spec
 import os
 import sys
 import logging
+import pdb
 
 
 snsTopicARN = 'snstopicarn'
@@ -97,7 +101,10 @@ class TemplateCreator:
     _short_name = None
     _account = None
     _ssm_client = None
+    _import_role = False
+    _import_subnets = False
     SSM = '[ssm:'
+    IMPORT = '[import:'
 
     _food = """      Environment:
         Variables:
@@ -159,6 +166,20 @@ class TemplateCreator:
             else:
                 the_api_bits = ''
 
+            pdb.set_trace()
+            if self._import_role:
+                current_role_parameter_section = ''
+                wrk = self._stack_properties.get('role', None)
+                wrk = wrk.replace('[', '')
+                wrk = wrk.replace(']', '')
+                wrk = wrk.replace(' ', '')
+                parts = wrk.split(':')
+                role = parts[1]
+                role_specification = imported_role_spec.format(role)
+            else:
+                current_role_parameter_section = role_parameter_section
+                role_specification = parameter_role_spec
+
             ctx = Context(
                 buf,
                 environment_section=self._food,
@@ -168,7 +189,9 @@ class TemplateCreator:
                 trustedServiceResource=trusted_service_resource_bits,
                 scheduleExpression=schedule_var_bits,
                 scheduleResource=schedule_resource_bits,
-                theAPI=the_api_bits
+                theAPI=the_api_bits,
+                roleParameterSection=current_role_parameter_section,
+                roleSpecification=role_specification
             )
 
             t.render_context(ctx)
@@ -185,6 +208,15 @@ class TemplateCreator:
             for key in self._stack_properties:
                 lowered_key = key.lower()
                 lowered_stack_properties[lowered_key] = self._stack_properties[key]
+
+            role = lowered_stack_properties.get('role', None)
+            subnets = lowered_stack_properties.get('subnets', None)
+
+            if role and role.startswith(self.IMPORT):
+                self._import_subnets = True
+
+            if subnets and subnets.startswith(self.IMPORT):
+                self._import_role = True
 
             if snsTopicARN in lowered_stack_properties:
                 self._sns_topic_arn_found = True
