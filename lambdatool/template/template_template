@@ -61,7 +61,7 @@ ${environment_section}
         Ref: timeOut
       VpcConfig:
         SecurityGroupIds:
-          ${securityGroupIds)
+          ${securityGroupIds}
         SubnetIds:
           ${subnetIds}
 ${snsSubscriptionResource}
