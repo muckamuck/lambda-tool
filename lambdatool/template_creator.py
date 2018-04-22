@@ -1,19 +1,24 @@
 from mako.template import Template
 from mako.runtime import Context
-from StringIO import StringIO
-from parts import get_the_api_chunk
 
-from cf_import_things import role_parameter_section
-from cf_import_things import parameter_role_spec
-from cf_import_things import imported_role_spec
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
-from cf_import_things import sg_parameter_section
-from cf_import_things import sg_parameter_spec
-from cf_import_things import imported_sg_spec
+from lambdatool.parts import get_the_api_chunk
 
-from cf_import_things import subnets_parameter_section
-from cf_import_things import subnets_parameter_spec
-from cf_import_things import imported_subnets_spec
+from lambdatool.cf_import_things import role_parameter_section
+from lambdatool.cf_import_things import parameter_role_spec
+from lambdatool.cf_import_things import imported_role_spec
+
+from lambdatool.cf_import_things import sg_parameter_section
+from lambdatool.cf_import_things import sg_parameter_spec
+from lambdatool.cf_import_things import imported_sg_spec
+
+from lambdatool.cf_import_things import subnets_parameter_section
+from lambdatool.cf_import_things import subnets_parameter_spec
+from lambdatool.cf_import_things import imported_subnets_spec
 
 import traceback
 import os

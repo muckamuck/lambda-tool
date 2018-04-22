@@ -9,10 +9,10 @@ import json
 import boto3
 import shutil
 import zipfile
-import utility #noqa
-import ConfigParser
-from stack_tool import StackTool
-from template_creator import TemplateCreator
+# import ConfigParser
+from configparser import ConfigParser
+from lambdatool.stack_tool import StackTool
+from lambdatool.template_creator import TemplateCreator
 from stackility import CloudStackUtility
 
 try:
@@ -496,7 +496,7 @@ class LambdaDeployer:
     def read_config_info(self):
         try:
             ini_file = 'config/config.ini'
-            config = ConfigParser.ConfigParser()
+            config = ConfigParser()
             config.read(ini_file)
             the_stuff = {}
             for section in config.sections():

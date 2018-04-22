@@ -4,7 +4,7 @@ import subprocess
 import os
 import sys
 import shutil
-import utility
+import lambdatool.utility
 import json
 
 logger = logging.getLogger()

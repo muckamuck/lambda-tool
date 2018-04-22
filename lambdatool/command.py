@@ -4,8 +4,8 @@ The command line interface to stackility.
 Major help from: https://www.youtube.com/watch?v=kNke39OZ2k0
 """
 import lambdatool
-from lambda_creator import LambdaCreator
-from lambda_deployer import LambdaDeployer
+from lambdatool.lambda_creator import LambdaCreator
+from lambdatool.lambda_deployer import LambdaDeployer
 import click
 import boto3
 import logging

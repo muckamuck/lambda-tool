@@ -1,3 +1,5 @@
+from lambdatool.lambda_creator import LambdaCreator #noqa
+from lambdatool.lambda_deployer import LambdaDeployer #noqa
 from datetime import datetime
 
 __title__ = 'lambdatool'
