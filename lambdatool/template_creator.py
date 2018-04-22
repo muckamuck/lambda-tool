@@ -19,7 +19,6 @@ import traceback
 import os
 import sys
 import logging
-import pdb
 
 
 snsTopicARN = 'snstopicarn'
@@ -188,7 +187,6 @@ class TemplateCreator:
                 current_role_parameter_section = role_parameter_section
                 role_specification = parameter_role_spec
 
-            pdb.set_trace()
             subnet_specification = None
             if self._import_subnets:
                 current_subnets_parameter_section = ''
@@ -246,14 +244,6 @@ class TemplateCreator:
             logging.info('writing template {}'.format(self._output_file))
             with open(self._output_file, "w") as outfile:
                     outfile.write(buf.getvalue())
-            print('written: {}'.format(self._output_file))
-            print('written: {}'.format(self._output_file))
-            print('written: {}'.format(self._output_file))
-            print('written: {}'.format(self._output_file))
-            print('written: {}'.format(self._output_file))
-            print('written: {}'.format(self._output_file))
-            print('written: {}'.format(self._output_file))
-            sys.exit(1)
         except Exception as wtf:
             logging.error('Exception caught in inject_stuff(): {}'.format(wtf))
             traceback.print_exc(file=sys.stdout)
@@ -270,7 +260,6 @@ class TemplateCreator:
             subnets = lowered_stack_properties.get('subnetids', None)
             security_group = lowered_stack_properties.get('securitygroupids', None)
 
-            pdb.set_trace()
             if role and role.startswith(self.IMPORT):
                 self._import_role = True
 
