@@ -36,8 +36,6 @@ logging.getLogger().setLevel(logging.INFO)
 PYTHON = 'python2.7'
 DEFAULT_MODULE_FILE = 'main.py'
 IGNORED_STUFF = ('config', '.git')
-PIP_COMMAND = 'pip install -q -Ur requirements.txt -t .'
-# '-q',
 PIP_ARGS = [
     'install',
     '-Ur',
@@ -384,11 +382,6 @@ class LambdaDeployer:
             logging.error('Exception caught in upload_package(): {}'.format(wtf))
             traceback.print_exc(file=sys.stdout)
             return False
-
-    def install_requirements_old(self):
-        command = PIP_COMMAND.split()
-        exit_status, stdout_text, stderr_text = self.execute_command(command)
-        return exit_status == 0
 
     def install_requirements(self):
         try:
