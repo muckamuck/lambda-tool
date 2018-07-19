@@ -9,7 +9,12 @@ import json
 import boto3
 import shutil
 import zipfile
-# import ConfigParser
+
+try:
+    from pip import main as pipmain
+except:
+    from pip._internal import main as pipmain
+
 from configparser import ConfigParser
 from lambdatool.stack_tool import StackTool
 from lambdatool.template_creator import TemplateCreator
@@ -32,6 +37,14 @@ PYTHON = 'python2.7'
 DEFAULT_MODULE_FILE = 'main.py'
 IGNORED_STUFF = ('config', '.git')
 PIP_COMMAND = 'pip install -q -Ur requirements.txt -t .'
+# '-q',
+PIP_ARGS = [
+    'install',
+    '-Ur',
+    'requirements.txt',
+    '-t',
+    '.'
+]
 
 ZIP_MODES = {
     zipfile.ZIP_DEFLATED: 'deflated',
@@ -57,6 +70,7 @@ class LambdaDeployer:
     _template_directory = None
     _s3_client = None
     _ssm_client = None
+    _python = None
 
     def __init__(self, config_block):
         """
@@ -88,6 +102,16 @@ class LambdaDeployer:
         else:
             logging.error('config block was garbage')
             raise SystemError
+
+        v = sys.version_info
+        if v.major == 2:
+            self._python = 'python2.7'
+        elif v.major == 3:
+            self._python = 'python3.6'
+        else:
+            logging.error('strange python version')
+            raise SystemError
+        logging.info('{} detected'.format(self._python))
 
     def deploy_lambda(self):
         """
@@ -275,7 +299,7 @@ class LambdaDeployer:
             wrk['s3Key'] = self._package_key
             wrk['functionName'] = '{}-{}'.format(self._lambda_name, self._stage)
             wrk['handler'] = 'main.lambda_handler'
-            wrk['runTime'] = PYTHON
+            wrk['runTime'] = self._python
             wrk['memorySize'] = memory_size
             wrk['role'] = role
             wrk['timeOut'] = timeout
@@ -361,10 +385,20 @@ class LambdaDeployer:
             traceback.print_exc(file=sys.stdout)
             return False
 
-    def install_requirements(self):
+    def install_requirements_old(self):
         command = PIP_COMMAND.split()
         exit_status, stdout_text, stderr_text = self.execute_command(command)
         return exit_status == 0
+
+    def install_requirements(self):
+        try:
+            pipmain(PIP_ARGS)
+        except Exception as wtf:
+            logging.error('Exception caught in upload_package(): {}'.format(wtf))
+            traceback.print_exc(file=sys.stdout)
+            return False
+
+        return True
 
     def copy_stuff(self):
         try:
