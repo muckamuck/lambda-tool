@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Fantastic Lambda Function
+Description: ${stackDescription}
 Parameters:
   s3Bucket:
     Description: bucket of the thingy

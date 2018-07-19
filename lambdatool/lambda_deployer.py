@@ -33,7 +33,7 @@ logging.basicConfig(level=logging.INFO,
 logging.getLogger().setLevel(logging.INFO)
 
 
-PYTHON = 'python2.7'
+DEFAULT_DESCRIPTION = 'Fantastic Lambda Function'
 DEFAULT_MODULE_FILE = 'main.py'
 IGNORED_STUFF = ('config', '.git')
 PIP_ARGS = [
@@ -62,6 +62,7 @@ class LambdaDeployer:
     _profile = None
     _region = None
     _lambda_name = None
+    _description = None
     _hash = None
     _tag_file = None
     _stack_properties = {}
@@ -262,8 +263,13 @@ class LambdaDeployer:
             output_file = '{}/template.yaml'.format(self._work_directory)
             template_file = '{}/template_template'.format(self._template_directory)
             templateCreator = TemplateCreator(self._ssm_client)
+            description = self._ini_data.get(self._stage, {}).get(
+                'description',
+                DEFAULT_DESCRIPTION
+            )
             template_created = templateCreator.create_template(
                 function_properties=function_properties,
+                description=description,
                 stack_properties=self._stack_properties,
                 output_file=output_file,
                 template_file=template_file,

@@ -111,7 +111,7 @@ class TemplateCreator:
     _trusted_service_found = False
     _create_service = False
     _schedule_found = False
-    _regio = None
+    _region = None
     _stage_name = None
     _short_name = None
     _account = None
@@ -119,6 +119,7 @@ class TemplateCreator:
     _import_role = False
     _import_subnets = False
     _import_security_group = False
+    _description = None
     SSM = '[ssm:'
     IMPORT = '[import:'
 
@@ -229,6 +230,7 @@ class TemplateCreator:
             ctx = Context(
                 buf,
                 environment_section=self._food,
+                stackDescription=self._description,
                 snsTopicARN=sns_var_bits,
                 snsSubscriptionResource=sns_resource_bits,
                 trustedService=trusted_service_var_bits,
@@ -243,7 +245,6 @@ class TemplateCreator:
                 sgParameterSection=current_sg_parameter_section,
                 securityGroupIds=sg_specification
             )
-            # securityGroupIds=sg_parameter_spec
 
             t.render_context(ctx)
             logging.info('writing template {}'.format(self._output_file))
@@ -302,6 +303,7 @@ class TemplateCreator:
             self._stage_name = kwargs['stage_name']
             self._short_name = kwargs['short_name']
             self._account = kwargs['account']
+            self._description = kwargs.get('description', 'Fantastic Lambda Function')
 
             self._read_stack_properties()
             self._inject_stuff()
