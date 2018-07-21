@@ -36,6 +36,7 @@ logging.getLogger().setLevel(logging.INFO)
 PYTHON = 'python2.7'
 DEFAULT_MODULE_FILE = 'main.py'
 IGNORED_STUFF = ('config', '.git')
+
 PIP_ARGS = [
     'install',
     '-Ur',
@@ -43,6 +44,11 @@ PIP_ARGS = [
     '-t',
     '.'
 ]
+
+# Enabling proxy support
+if 'https_proxy' in os.environ:
+    PIP_ARGS.insert(0,os.environ['https_proxy'])
+    PIP_ARGS.insert(0,'--proxy')
 
 ZIP_MODES = {
     zipfile.ZIP_DEFLATED: 'deflated',
