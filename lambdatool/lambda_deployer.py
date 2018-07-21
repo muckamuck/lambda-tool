@@ -47,7 +47,7 @@ PIP_ARGS = [
 
 # Enabling proxy support
 if 'https_proxy' in os.environ:
-    PIP_ARGS.insert(0,os.environ['https_proxy']
+    PIP_ARGS.insert(0,os.environ['https_proxy'])
     PIP_ARGS.insert(0,'--proxy')
 
 ZIP_MODES = {
