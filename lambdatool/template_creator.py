@@ -19,6 +19,7 @@ from lambdatool.cf_import_things import imported_sg_spec
 from lambdatool.cf_import_things import subnets_parameter_section
 from lambdatool.cf_import_things import subnets_parameter_spec
 from lambdatool.cf_import_things import imported_subnets_spec
+from lambdatool.cf_import_things import output_section
 
 import traceback
 import os
@@ -26,6 +27,7 @@ import sys
 import logging
 
 
+export_name = 'export_name'
 snsTopicARN = 'snstopicarn'
 trustedService = 'trustedservice'
 schedule = 'scheduleexpression'
@@ -111,6 +113,7 @@ class TemplateCreator:
     _trusted_service_found = False
     _create_service = False
     _schedule_found = False
+    _export_name = None
     _region = None
     _stage_name = None
     _short_name = None
@@ -227,10 +230,16 @@ class TemplateCreator:
                 current_sg_parameter_section = sg_parameter_section
                 sg_specification = sg_parameter_spec
 
+            if self._export_name:
+                output_section_bits = output_section.format(self._export_name, self._export_name)
+            else:
+                output_section_bits = ''
+
             ctx = Context(
                 buf,
                 environment_section=self._food,
                 stackDescription=self._description,
+                outputSection=output_section_bits,
                 snsTopicARN=sns_var_bits,
                 snsSubscriptionResource=sns_resource_bits,
                 trustedService=trusted_service_var_bits,
@@ -283,6 +292,9 @@ class TemplateCreator:
 
             if schedule in lowered_stack_properties:
                 self._schedule_found = True
+
+            if export_name in lowered_stack_properties:
+                self._export_name = lowered_stack_properties.get(export_name)
 
             tmp = lowered_stack_properties.get(service, 'false').lower()
             if tmp == 'true':
