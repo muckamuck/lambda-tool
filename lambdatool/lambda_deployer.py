@@ -297,6 +297,7 @@ class LambdaDeployer:
             trusted_service = self._ini_data.get(self._stage, {}).get('trustedservice', None)
             lambda_schedule_expression = self._ini_data.get(self._stage, {}).get('scheduleexpression', None)
             service = self._ini_data.get(self._stage, {}).get('service', None)
+            export_name = self._ini_data.get(self._stage, {}).get('export_name', None)
 
             wrk = {}
             wrk['s3Bucket'] = bucket
@@ -309,6 +310,9 @@ class LambdaDeployer:
             wrk['timeOut'] = timeout
             wrk['securityGroupIds'] = security_group
             wrk['subnetIds'] = subnets
+
+            if export_name:
+                wrk['export_name'] = export_name
 
             if sns_topic_arn:
                 logging.info('subscribing lambda to SNS topic: {}'.format(sns_topic_arn))
