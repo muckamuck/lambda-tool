@@ -24,3 +24,19 @@ sg_parameter_section = """  securityGroupIds:
     Type: CommaDelimitedList"""
 sg_parameter_spec = 'Ref: securityGroupIds'
 imported_sg_spec = '- Fn::ImportValue: {}'
+
+output_section = '''Outputs:
+  LambdaFunction:
+    Description: The name of a LambdaTool function
+    Value:
+      Ref: LambdaFunction
+    Export:
+      Name: {}-Name
+  LambdaFunctionARN:
+    Description: The ARN of a LambdaTool function
+    Value:
+      Fn::GetAtt:
+        - LambdaFunction
+        - Arn
+    Export:
+      Name: {}-Arn'''
