@@ -24,7 +24,7 @@ Parameters:
   retentionDays:
     Description: days to retain the Cloudwatch logs
     Type: String
-    Default: '42'
+    Default: '30'
   memorySize:
     Description: memory size
     Type: String
