@@ -13,10 +13,18 @@ Parameters:
     Description: name of the thingy
     Type: String
     Default: something
+  logGroupName:
+    Description: name of the log group
+    Type: String
+    Default: something
   handler:
     Description: entry point
     Type: String
     Default: main.lambda_handler
+  retentionDays:
+    Description: days to retain the Cloudwatch logs
+    Type: String
+    Default: '42'
   memorySize:
     Description: memory size
     Type: String
@@ -36,6 +44,13 @@ ${snsTopicARN}
 ${trustedService}
 ${scheduleExpression}
 Resources:
+  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName:
+        Ref: logGroupName
+      RetentionInDays:
+        Ref: retentionDays
   LambdaFunction:
     Type: AWS::Lambda::Function
     Properties:

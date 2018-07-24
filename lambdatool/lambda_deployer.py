@@ -298,11 +298,13 @@ class LambdaDeployer:
             lambda_schedule_expression = self._ini_data.get(self._stage, {}).get('scheduleexpression', None)
             service = self._ini_data.get(self._stage, {}).get('service', None)
             export_name = self._ini_data.get(self._stage, {}).get('export_name', None)
+            retention_days = self._ini_data.get(self._stage, {}).get('retention_days', '30')
 
             wrk = {}
             wrk['s3Bucket'] = bucket
             wrk['s3Key'] = self._package_key
             wrk['functionName'] = '{}-{}'.format(self._lambda_name, self._stage)
+            wrk['logGroupName'] = '/aws/lambda/{}-{}'.format(self._lambda_name, self._stage)
             wrk['handler'] = 'main.lambda_handler'
             wrk['runTime'] = self._python
             wrk['memorySize'] = memory_size
@@ -310,6 +312,7 @@ class LambdaDeployer:
             wrk['timeOut'] = timeout
             wrk['securityGroupIds'] = security_group
             wrk['subnetIds'] = subnets
+            wrk['retentionDays'] = retention_days
 
             if export_name:
                 wrk['export_name'] = export_name
