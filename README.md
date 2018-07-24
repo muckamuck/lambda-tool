@@ -104,10 +104,13 @@ role=               [REQUIRED an ARN of the IAM role for your lambda]
 memory=             [REQUIRED a memory size for your lambda default 128 - 1536]
 bucket=             [REQUIRED a bucket to store deployment artifacts]
 timeout=            [REQUIRED timeout value in seconds 1 - 300]
+description=        [OPTIONAL if present the value is used as the description text of the stack]
+export_name=        [OPTIONAL if present the name and ARN of the function are exported]
+retention_days=     [OPTIONAL if present the CloudWatch logs expire in <value> days (default 30 days)]
+scheduleExpression= [OPTIONAL a cron expression to execute the lambda - e.g.: rate(5 minutes)]
 service=            [OPTIONAL true or false to create API gateway for lambda]
 snsTopicARN=        [OPTIONAL an ARN of an SNS topic to create subscription]
 trustedService=     [OPTIONAL an ID of AWS service to be trusted - e.g.: cognito-idp.amazonaws.com]
-scheduleExpression= [OPTIONAL a cron expression to execute the lambda - e.g.: rate(5 minutes)]
 ```
 
 The ```new``` command makes a best effort to fill in the blanks in the ```config.ini``` file. If there is no default VPC this attempt
@@ -119,6 +122,11 @@ will not go well. *Note: you will need to open the config.ini file and add an S3
 ## TODO:
 
 * Create templates or guidance to create the VPC, subnets, security group etc.
+* Polish this document
+* Use single CloudFormation boto3 client
+* Examples
+* More examples
+* Even more examples
 
 
 ## Notes:
