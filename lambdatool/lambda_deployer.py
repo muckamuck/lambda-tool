@@ -33,7 +33,7 @@ logging.basicConfig(level=logging.INFO,
 logging.getLogger().setLevel(logging.INFO)
 
 
-LAMBDATOOL_VERSION = 'XXX'
+LAMBDATOOL_VERSION = '0.5.1'
 LAMBDATOOL_DESCRIPTOR = '.lambdatool'
 DEFAULT_DESCRIPTION = 'Fantastic Lambda Function'
 DEFAULT_MODULE_FILE = 'main.py'
