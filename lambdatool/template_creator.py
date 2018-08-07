@@ -20,6 +20,7 @@ from lambdatool.cf_import_things import subnets_parameter_section
 from lambdatool.cf_import_things import subnets_parameter_spec
 from lambdatool.cf_import_things import imported_subnets_spec
 from lambdatool.cf_import_things import output_section
+from lambdatool.cf_import_things import lambda_log_group
 
 import traceback
 import os
@@ -123,6 +124,7 @@ class TemplateCreator:
     _import_subnets = False
     _import_security_group = False
     _description = None
+    _create_log_group = False
     SSM = '[ssm:'
     IMPORT = '[import:'
 
@@ -235,6 +237,11 @@ class TemplateCreator:
             else:
                 output_section_bits = ''
 
+            if self._create_log_group:
+                lambda_log_group_bits = lambda_log_group
+            else:
+                lambda_log_group_bits = ''
+
             ctx = Context(
                 buf,
                 environment_section=self._food,
@@ -252,6 +259,7 @@ class TemplateCreator:
                 subnetsParameterSection=current_subnets_parameter_section,
                 subnetIds=subnet_specification,
                 sgParameterSection=current_sg_parameter_section,
+                lambdaLogGroup=lambda_log_group_bits,
                 securityGroupIds=sg_specification
             )
 
@@ -315,6 +323,7 @@ class TemplateCreator:
             self._stage_name = kwargs['stage_name']
             self._short_name = kwargs['short_name']
             self._account = kwargs['account']
+            self._create_log_group = kwargs['create_log_group']
             self._description = kwargs.get('description', 'Fantastic Lambda Function')
 
             self._read_stack_properties()

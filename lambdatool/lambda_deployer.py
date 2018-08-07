@@ -269,10 +269,12 @@ class LambdaDeployer:
             output_file = '{}/template.yaml'.format(self._work_directory)
             template_file = '{}/template_template'.format(self._template_directory)
             templateCreator = TemplateCreator(self._ssm_client)
+
             description = self._ini_data.get(self._stage, {}).get(
                 'description',
                 DEFAULT_DESCRIPTION
             )
+
             template_created = templateCreator.create_template(
                 function_properties=function_properties,
                 description=description,
@@ -282,6 +284,7 @@ class LambdaDeployer:
                 region=self._region,
                 stage_name=self._stage,
                 short_name=self._lambda_name,
+                create_log_group=self._create_log_group,
                 account=boto3.client('sts').get_caller_identity()['Account']
             )
 

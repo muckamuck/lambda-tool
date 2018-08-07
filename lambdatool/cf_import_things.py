@@ -40,3 +40,11 @@ output_section = '''Outputs:
         - Arn
     Export:
       Name: {}-Arn'''
+
+lambda_log_group = '''  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Ref: logGroupName
+      RetentionInDays:
+        Ref: retentionDays'''

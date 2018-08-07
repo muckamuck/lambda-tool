@@ -44,13 +44,7 @@ ${snsTopicARN}
 ${trustedService}
 ${scheduleExpression}
 Resources:
-  LambdaLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties: 
-      LogGroupName:
-        Ref: logGroupName
-      RetentionInDays:
-        Ref: retentionDays
+${lambdaLogGroup}
   LambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
