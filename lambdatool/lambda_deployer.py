@@ -33,6 +33,8 @@ logging.basicConfig(level=logging.INFO,
 logging.getLogger().setLevel(logging.INFO)
 
 
+LAMBDATOOL_VERSION = 'XXX'
+LAMBDATOOL_DESCRIPTOR = '.lambdatool'
 DEFAULT_DESCRIPTION = 'Fantastic Lambda Function'
 DEFAULT_MODULE_FILE = 'main.py'
 IGNORED_STUFF = ('config', '.git')
@@ -62,6 +64,7 @@ class LambdaDeployer:
     _profile = None
     _region = None
     _lambda_name = None
+    _create_log_group = False
     _description = None
     _hash = None
     _tag_file = None
@@ -124,7 +127,10 @@ class LambdaDeployer:
             False if the lambda is not deployed for some odd reason
         """
         try:
-            self._lambda_name = self.find_lambda_name()
+            if not self.read_descriptor():
+                logging.error('problem reading ".lambdatool" descriptor, exiting')
+                return False
+
             if not self.verify_lambda_directory():
                 logging.error('module file {} not found, exiting'.format(DEFAULT_MODULE_FILE))
                 return False
@@ -446,25 +452,26 @@ class LambdaDeployer:
     def verify_lambda_directory(self):
         return os.path.isfile(DEFAULT_MODULE_FILE)
 
-    def find_lambda_name(self):
-        lambdatool = '.lambdatool'
-        lambda_name = None
+    def read_descriptor(self):
         try:
-            with open(lambdatool, 'r') as j:
+            with open(LAMBDATOOL_DESCRIPTOR, 'r') as j:
                 stuff = json.load(j)
-                lambda_name = stuff['name']
+                self._lambda_name = stuff.get('name', None)
+                self._create_log_group = stuff.get('createLogGroup', False)
 
-            if not lambda_name:
+            if not self._lambda_name:
                 cwd = os.getcwd()
                 dirs = cwd.split('/')
-                lambda_name = dirs[-1]
+                self._lambda_name = dirs[-1]
 
-            logging.info('lambda_name: {}'.format(lambda_name))
+            logging.info('lambda_name: {}'.format(self._lambda_name))
+            logging.info('create_log_group: {}'.format(self._create_log_group))
+            return True
         except Exception as x:
-            logging.error('Exception caught in deploy_lambda(): {}'.format(x))
+            logging.error('Exception caught in read_descriptor(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
 
-        return lambda_name
+        return False
 
     def execute_command(self, command):
         stdout_buf = str()
@@ -483,7 +490,7 @@ class LambdaDeployer:
 
             return p.returncode, stdout_buf, stderr_buf
         except subprocess.CalledProcessError as x:
-            logging.error('Exception caught in create_lambda(): {}'.format(x))
+            logging.error('Exception caught in execute_command(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return x.returncode, None, None
 
