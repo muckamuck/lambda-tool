@@ -71,6 +71,7 @@ class LambdaDeployer:
     _stack_properties = {}
     _template_directory = None
     _s3_client = None
+    _apig_client = None
     _ssm_client = None
     _python = None
 
@@ -89,6 +90,7 @@ class LambdaDeployer:
         Raises:
             SystemError - if everything isn't just right
         """
+        self._stack_name = None
         if config_block:
             if not os.path.isdir(config_block['work_directory']):
                 logging.error('{} does not exist'.format(config_block['work_directory']))
@@ -202,11 +204,46 @@ class LambdaDeployer:
                 logging.info('create_stack() failed')
                 return False
 
+            if self.redeploy_api():
+                logging.info('redeploy_api() successful')
+            else:
+                logging.info('redeploy_api() failed')
+                return False
+
             return True
         except Exception as x:
             logging.error('Exception caught in deploy_lambda(): {}'.format(x))
             traceback.print_exc(file=sys.stdout)
             return False
+
+    def redeploy_api(self):
+        try:
+            rest_api_id = None
+            deployment_id = None
+
+            response = self._cf_client.describe_stack_resources(
+                StackName=self._stack_name
+            )
+
+            for resource in response['StackResources']:
+                if resource['ResourceType'] == 'AWS::ApiGateway::RestApi':
+                    rest_api_id = resource['PhysicalResourceId']
+                elif resource['ResourceType'] == 'AWS::ApiGateway::Deployment':
+                    deployment_id = resource['PhysicalResourceId']
+
+            if rest_api_id and deployment_id:
+                logging.debug('redeploying the API')
+                r = self._apig_client.create_deployment(
+                    restApiId=rest_api_id,
+                    stageName=self._stage
+                )
+                logging.debug(r)
+
+            return True
+        except Exception as wtf:
+            logging.error(wtf, exc_info=True)
+
+        return False
 
     def create_stack(self):
         try:
@@ -215,7 +252,7 @@ class LambdaDeployer:
             ini_data['tags'] = {}
             ini_data['parameters'] = {}
 
-            stack_name = '{}-lambda-{}'.format(
+            self._stack_name = '{}-lambda-{}'.format(
                 self._stage,
                 self._lambda_name
             )
@@ -223,7 +260,7 @@ class LambdaDeployer:
             tmp_env = self._ini_data[self._stage]
             ini_data['environment']['template'] = '{}/template.yaml'.format(self._work_directory)
             ini_data['environment']['bucket'] = tmp_env['bucket']
-            ini_data['environment']['stack_name'] = stack_name
+            ini_data['environment']['stack_name'] = self._stack_name
             ini_data['codeVersion'] = self._hash
             if self._region:
                 ini_data['environment']['region'] = self._region
@@ -241,7 +278,7 @@ class LambdaDeployer:
                 if stack_driver.poll_stack():
                     logging.info('stack create/update was finished successfully.')
                     st = StackTool(
-                        stack_name,
+                        self._stack_name,
                         self._stage,
                         self._profile,
                         self._region,
@@ -308,6 +345,7 @@ class LambdaDeployer:
             service = self._ini_data.get(self._stage, {}).get('service', None)
             export_name = self._ini_data.get(self._stage, {}).get('export_name', None)
             retention_days = self._ini_data.get(self._stage, {}).get('retention_days', '30')
+            whitelist = self._ini_data.get(self._stage, {}).get('whitelist', None)
 
             wrk = {}
             wrk['s3Bucket'] = bucket
@@ -322,6 +360,9 @@ class LambdaDeployer:
             wrk['securityGroupIds'] = security_group
             wrk['subnetIds'] = subnets
             wrk['retentionDays'] = retention_days
+
+            if whitelist:
+                wrk['whitelist'] = whitelist
 
             if export_name:
                 wrk['export_name'] = export_name
@@ -581,6 +622,7 @@ class LambdaDeployer:
             self._s3_client = self._b3Sess.client('s3')
             self._cf_client = self._b3Sess.client('cloudformation', region_name=self._region)
             self._ssm_client = self._b3Sess.client('ssm', region_name=self._region)
+            self._apig_client = self._b3Sess.client('apigateway', region_name=self._region)
 
             return True
         except Exception as wtf:

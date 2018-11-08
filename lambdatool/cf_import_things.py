@@ -48,3 +48,17 @@ lambda_log_group = '''  LambdaLogGroup:
         Ref: logGroupName
       RetentionInDays:
         Ref: retentionDays'''
+
+resource_policy_spacer = '                  - '
+resource_policy = '''
+      Policy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action: execute-api:Invoke
+            Resource: arn:aws:execute-api:*:*:*
+            Condition:
+              IpAddress:
+                aws:SourceIp:
+'''

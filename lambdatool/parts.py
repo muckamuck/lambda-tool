@@ -8,6 +8,7 @@ the_api = """  theAPI:
     DependsOn: LambdaFunction
     Properties:
       Description: LambdaTool created this AWS ApiGateway RestApi thing
+      {resource_policy}
       Body:
         swagger: "2.0"
         info:
@@ -116,7 +117,8 @@ def get_the_api_chunk(**kwargs):
         region=kwargs['region'],
         stage_name=kwargs['stage_name'],
         short_name=kwargs['short_name'],
-        account=kwargs['account']
+        account=kwargs['account'],
+        resource_policy=kwargs['resource_policy']
     )
 
 if __name__ == '__main__':

@@ -22,12 +22,16 @@ from lambdatool.cf_import_things import imported_subnets_spec
 from lambdatool.cf_import_things import output_section
 from lambdatool.cf_import_things import lambda_log_group
 
+from lambdatool.cf_import_things import resource_policy_spacer
+from lambdatool.cf_import_things import resource_policy
+
 import traceback
 import os
 import sys
 import logging
 
 
+whitelist = 'whitelist'
 export_name = 'export_name'
 snsTopicARN = 'snstopicarn'
 trustedService = 'trustedservice'
@@ -123,6 +127,7 @@ class TemplateCreator:
     _import_role = False
     _import_subnets = False
     _import_security_group = False
+    _import_sqs_arn = False
     _description = None
     _create_log_group = False
     SSM = '[ssm:'
@@ -183,7 +188,8 @@ class TemplateCreator:
                     region=self._region,
                     stage_name=self._stage_name,
                     short_name=self._short_name,
-                    account=self._account
+                    account=self._account,
+                    resource_policy=self._resource_policy
                 )
             else:
                 the_api_bits = ''
@@ -282,6 +288,7 @@ class TemplateCreator:
             role = lowered_stack_properties.get('role', None)
             subnets = lowered_stack_properties.get('subnetids', None)
             security_group = lowered_stack_properties.get('securitygroupids', None)
+            sqs_arn = lowered_stack_properties.get('sqsarn', None)
 
             if role and role.startswith(self.IMPORT):
                 self._import_role = True
@@ -291,6 +298,9 @@ class TemplateCreator:
 
             if security_group and security_group.startswith(self.IMPORT):
                 self._import_security_group = True
+
+            if sqs_arn and sqs_arn.startswith(self.IMPORT):
+                self._import_sqs_arn = True
 
             if snsTopicARN in lowered_stack_properties:
                 self._sns_topic_arn_found = True
@@ -303,6 +313,17 @@ class TemplateCreator:
 
             if export_name in lowered_stack_properties:
                 self._export_name = lowered_stack_properties.get(export_name)
+
+            if lowered_stack_properties.get('whitelist', None):
+                parts = lowered_stack_properties.get(whitelist).split(',')
+                buf = resource_policy
+
+                for cidr in parts:
+                    buf = buf + '\n' + resource_policy_spacer + cidr
+
+                self._resource_policy = buf
+            else:
+                self._resource_policy = ''
 
             tmp = lowered_stack_properties.get(service, 'false').lower()
             if tmp == 'true':
