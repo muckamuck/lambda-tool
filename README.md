@@ -111,6 +111,7 @@ scheduleExpression= [OPTIONAL a cron expression to execute the lambda - e.g.: ra
 service=            [OPTIONAL true or false to create API gateway for lambda]
 snsTopicARN=        [OPTIONAL an ARN of an SNS topic to create subscription]
 trustedService=     [OPTIONAL an ID of AWS service to be trusted - e.g.: cognito-idp.amazonaws.com]
+whitelist=          [OPTIONAL a CSV list of acceptable CIDR blocks for a servicee.g.: 192.168.1.0/24]
 ```
 
 The ```new``` command makes a best effort to fill in the blanks in the ```config.ini``` file. If there is no default VPC this attempt
