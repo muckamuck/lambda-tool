@@ -3,7 +3,7 @@ from lambdatool.lambda_deployer import LambdaDeployer #noqa
 from datetime import datetime
 
 __title__ = 'lambdatool'
-__version__ = '0.5.2'
+__version__ = '0.6.0'
 __author__ = 'Mr. Chuck Muckamuck'
 __author_email__ = 'chuck.muckamuck@gmail.com'
 __license__ = '''MIT License
