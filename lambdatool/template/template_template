@@ -42,6 +42,7 @@ ${sgParameterSection}
 ${roleParameterSection}
 ${snsTopicARN}
 ${trustedService}
+${reservedConcurrency}
 ${scheduleExpression}
 Resources:
 ${lambdaLogGroup}
@@ -68,6 +69,7 @@ ${environment_section}
         Ref: runTime
       Timeout:
         Ref: timeOut
+${reservedConcurrencyResource}
       VpcConfig:
         SecurityGroupIds:
           ${securityGroupIds}

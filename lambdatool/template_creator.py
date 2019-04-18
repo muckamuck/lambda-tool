@@ -35,6 +35,7 @@ whitelist = 'whitelist'
 export_name = 'export_name'
 snsTopicARN = 'snstopicarn'
 trustedService = 'trustedservice'
+reservedConcurrency = 'reservedconcurrency'
 schedule = 'scheduleexpression'
 service = 'service'
 new_line = '\n'
@@ -46,6 +47,10 @@ sns_topic_arn = """  snsTopicARN:
 
 trusted_service = """  trustedService:
     Description: service which this lambda trusts
+    Type: String"""
+
+reserved_concurrency = """  reservedConcurrency:
+    Description: the maximum number of concurrent invocations
     Type: String"""
 
 schedule_expression = """  scheduleExpression:
@@ -79,6 +84,9 @@ trusted_service_resource = """  TrustedService:
       Action: lambda:InvokeFunction
       Principal:
         Ref: trustedService"""
+
+reserved_concurrency_resource = '''      ReservedConcurrentExecutions:
+        Ref: reservedConcurrency'''
 
 rule_id = '{}-{}'.format(
     os.environ.get('LAMBDA_NAME', 'unknown'),
@@ -116,6 +124,7 @@ class TemplateCreator:
     _template_file = None
     _sns_topic_arn_found = False
     _trusted_service_found = False
+    _reserved_concurrency_found = False
     _create_service = False
     _schedule_found = False
     _export_name = None
@@ -175,6 +184,13 @@ class TemplateCreator:
             else:
                 trusted_service_var_bits = ''
                 trusted_service_resource_bits = ''
+
+            if self._reserved_concurrency_found:
+                reserved_concurrency_var_bits = reserved_concurrency
+                reserved_concurrency_resource_bits = reserved_concurrency_resource
+            else:
+                reserved_concurrency_var_bits = ''
+                reserved_concurrency_resource_bits = ''
 
             if self._schedule_found:
                 schedule_var_bits = schedule_expression
@@ -257,6 +273,8 @@ class TemplateCreator:
                 snsSubscriptionResource=sns_resource_bits,
                 trustedService=trusted_service_var_bits,
                 trustedServiceResource=trusted_service_resource_bits,
+                reservedConcurrency=reserved_concurrency_var_bits,
+                reservedConcurrencyResource=reserved_concurrency_resource_bits,
                 scheduleExpression=schedule_var_bits,
                 scheduleResource=schedule_resource_bits,
                 theAPI=the_api_bits,
@@ -307,6 +325,9 @@ class TemplateCreator:
 
             if trustedService in lowered_stack_properties:
                 self._trusted_service_found = True
+
+            if reservedConcurrency in lowered_stack_properties:
+                self._reserved_concurrency_found = True
 
             if schedule in lowered_stack_properties:
                 self._schedule_found = True
