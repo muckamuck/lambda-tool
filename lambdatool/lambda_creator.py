@@ -112,7 +112,7 @@ class LambdaCreator:
         '''
         try:
             vpc_info = {}
-            ec2_client = utility.get_api_client(
+            ec2_client = lambdatool.utility.get_api_client(
                 self._profile,
                 self._region,
                 'ec2'
@@ -144,7 +144,7 @@ class LambdaCreator:
 
     def _find_lambda_role(self):
         try:
-            iam_client = utility.get_api_client(
+            iam_client = lambdatool.utility.get_api_client(
                 self._profile,
                 self._region,
                 'iam'
@@ -172,7 +172,7 @@ class LambdaCreator:
 
     def _find_default_security_group(self, vpc_id):
         try:
-            ec2_client = utility.get_api_client(
+            ec2_client = lambdatool.utility.get_api_client(
                 self._profile,
                 self._region,
                 'ec2'
@@ -196,7 +196,7 @@ class LambdaCreator:
     def _find_default_subnets(self, vpc_id):
         try:
             subnets = []
-            ec2_client = utility.get_api_client(
+            ec2_client = lambdatool.utility.get_api_client(
                 self._profile,
                 self._region,
                 'ec2'

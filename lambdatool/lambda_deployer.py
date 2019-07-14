@@ -111,11 +111,18 @@ class LambdaDeployer:
         if v.major == 2:
             self._python = 'python2.7'
         elif v.major == 3:
-            self._python = 'python3.6'
+            if v.minor == 6:
+                self._python = 'python3.6'
+            elif v.minor == 7:
+                self._python = 'python3.7'
+            else:
+                logging.error('python %s.%s detected', v.major, v.minor)
+                logging.error('only python3.6 or python3.7 available')
+                raise SystemError
         else:
             logging.error('strange python version')
             raise SystemError
-        logging.info('{} detected'.format(self._python))
+        logging.info('{} runtime selected'.format(self._python))
 
     def deploy_lambda(self):
         """
