@@ -221,7 +221,12 @@ class TemplateCreator:
                 role_specification = parameter_role_spec
 
             subnet_specification = None
-            if self._import_subnets:
+            includeVpcConfig = True
+            if self._stack_properties.get('subnetIds', None) is None:
+                current_subnets_parameter_section = None
+                subnet_specification = None
+                includeVpcConfig = False
+            elif self._import_subnets:
                 current_subnets_parameter_section = ''
                 subnets = self._find_imported_csv(
                     self._stack_properties.get('subnetIds', None)
@@ -238,7 +243,11 @@ class TemplateCreator:
                 subnet_specification = subnets_parameter_spec
 
             sg_specification = None
-            if self._import_security_group:
+            if self._stack_properties.get('securityGroupIds', None) is None:
+                current_sg_parameter_section = None
+                sg_specification = None
+                includeVpcConfig = False
+            elif self._import_security_group:
                 current_sg_parameter_section = ''
                 sg_csv = self._find_imported_csv(
                     self._stack_properties.get('securityGroupIds', None)
@@ -253,6 +262,8 @@ class TemplateCreator:
             else:
                 current_sg_parameter_section = sg_parameter_section
                 sg_specification = sg_parameter_spec
+
+            logging.info('includeVpcConfig: %s', includeVpcConfig)
 
             if self._export_name:
                 output_section_bits = output_section.format(self._export_name, self._export_name)
@@ -284,7 +295,8 @@ class TemplateCreator:
                 subnetIds=subnet_specification,
                 sgParameterSection=current_sg_parameter_section,
                 lambdaLogGroup=lambda_log_group_bits,
-                securityGroupIds=sg_specification
+                securityGroupIds=sg_specification,
+                includeVpcConfig=includeVpcConfig
             )
 
             t.render_context(ctx)

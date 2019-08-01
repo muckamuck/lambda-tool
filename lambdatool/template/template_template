@@ -37,13 +37,15 @@ Parameters:
     Description: time out in seconds
     Type: String
     Default: 60
-${subnetsParameterSection}
-${sgParameterSection}
 ${roleParameterSection}
 ${snsTopicARN}
 ${trustedService}
 ${reservedConcurrency}
 ${scheduleExpression}
+% if includeVpcConfig:
+${subnetsParameterSection}
+${sgParameterSection}
+% endif
 Resources:
 ${lambdaLogGroup}
   LambdaFunction:
@@ -70,11 +72,13 @@ ${environment_section}
       Timeout:
         Ref: timeOut
 ${reservedConcurrencyResource}
+% if includeVpcConfig:
       VpcConfig:
         SecurityGroupIds:
           ${securityGroupIds}
         SubnetIds:
           ${subnetIds}
+% endif
 ${snsSubscriptionResource}
 ${trustedServiceResource}
 ${scheduleResource}
