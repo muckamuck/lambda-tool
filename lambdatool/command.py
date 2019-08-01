@@ -59,6 +59,8 @@ def new(directory, name, service, profile, region):
     else:
         command_line['region'] = None
 
+    command_line['service'] = service
+
     if start_new_lambda(command_line):
         sys.exit(0)
     else:
