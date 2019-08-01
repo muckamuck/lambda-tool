@@ -20,10 +20,6 @@ class LambdaCreator:
     """
     Lambda utility is yet another tool create and deploy AWS lambda functions
     """
-    _config = None
-    _region = None
-    _profile = None
-
     def __init__(self, config_block):
         """
         Lambda utility init method.
@@ -43,6 +39,7 @@ class LambdaCreator:
             self._config = config_block
             self._profile = config_block['profile']
             self._region = config_block['region']
+            self._service = config_block['service']
         else:
             logger.error('config block was garbage')
             raise SystemError
@@ -138,7 +135,8 @@ class LambdaCreator:
                     return vpc_info
         except Exception as wtf:
             logger.error('Exception caught in create_lambda(): {}'.format(wtf))
-            traceback.print_exc(file=sys.stdout)
+            logger.fatal(wtf, exc_info=False)
+            sys.exit(1)
 
         return {}
 
@@ -262,7 +260,7 @@ class LambdaCreator:
             if 'security_group' in env_info:
                 ini_file.write('security_group={}\n'.format(env_info['security_group']))
             else:
-                ini_file.write('security_group=ADD_SECURITY_GROUP\n')
+                ini_file.write('#security_group=ENTER_A_SECURITY_GROUP_FOR_VPC\n')
 
             if 'subnets' in env_info:
                 wrk = str()
@@ -274,14 +272,24 @@ class LambdaCreator:
 
                 ini_file.write('subnets={}\n'.format(wrk))
             else:
-                ini_file.write('subnets=ADD_SUBNETS\n')
+                ini_file.write('#subnets=ENTER_A_COMMA_SEPARATED_LIST_OF_VPC_SUBNETS\n')
 
             if 'role' in env_info:
                 ini_file.write('role={}\n'.format(env_info['role']))
             else:
-                ini_file.write('role=ADD_YOUR_LAMBDA_IAM_ROLE\n')
+                role_arn = input("Enter execution role ARN (smash enter to skip): ")
+                parts = role_arn.split(':')
+                if len(parts) == 6 and role_arn.startswith('arn:aws:iam'):
+                    ini_file.write('role={}\n'.format(role_arn))
+                else:
+                    ini_file.write('role=ADD_YOUR_LAMBDA_IAM_ROLE\n')
 
             ini_file.write('memory=512\n')
-            ini_file.write('service=true\n')
+
+            if self._service:
+                ini_file.write('service=true\n')
+            else:
+                ini_file.write('service=false\n')
+
             ini_file.write('bucket=ADD_YOUR_ARTIFACT_BUCKET\n')
             ini_file.write('\n')
