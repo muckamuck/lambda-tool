@@ -291,5 +291,10 @@ class LambdaCreator:
             else:
                 ini_file.write('service=false\n')
 
-            ini_file.write('bucket=ADD_YOUR_ARTIFACT_BUCKET\n')
+            bucket_name = input("Enter artifact bucket (smash enter to skip): ")
+            if len(bucket_name) == 0:
+                ini_file.write('bucket=ADD_YOUR_ARTIFACT_BUCKET\n')
+            else:
+                ini_file.write('bucket={}\n'.format(bucket_name))
+
             ini_file.write('\n')
