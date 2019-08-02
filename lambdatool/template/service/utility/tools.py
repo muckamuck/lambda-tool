@@ -102,7 +102,7 @@ class FlaskLambda(Flask):
         body = next(self.wsgi_app(
             make_environ(event),
             response.start_response
-        ))
+        )).decode('utf-8')
 
         return {
             'statusCode': response.status,
