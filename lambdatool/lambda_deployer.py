@@ -1,3 +1,11 @@
+'''
+Facilitate the packaging and deployment of the function
+'''
+# pylint: disable=invalid-name
+# pylint: disable=broad-except
+# pylint: disable=line-too-long
+# pylint: disable=bare-except
+
 import logging
 import traceback
 import subprocess
@@ -10,15 +18,11 @@ import boto3
 import shutil
 import zipfile
 
-try:
-    from pip import main as pipmain
-except:
-    from pip._internal import main as pipmain
-
 from configparser import ConfigParser
 from lambdatool.stack_tool import StackTool
 from lambdatool.template_creator import TemplateCreator
 from stackility import CloudStackUtility
+from lambdatool.pip_util import pipmain
 
 try:
     import zlib #noqa
@@ -307,8 +311,8 @@ class LambdaDeployer:
     def create_template_file(self):
         try:
             function_properties = '{}/config/{}/function.properties'.format(
-                    self._work_directory,
-                    self._stage
+                self._work_directory,
+                self._stage
             )
             output_file = '{}/template.yaml'.format(self._work_directory)
             template_file = '{}/template_template'.format(self._template_directory)
@@ -415,10 +419,9 @@ class LambdaDeployer:
                 outfile.write('APPLICATION={} lambda function\n'.format(self._lambda_name))
                 outfile.write('ENVIRONMENT={}\n'.format(self._stage))
                 outfile.write('STACK_NAME=lambda-{}-{}\n'.format(
-                        self._lambda_name,
-                        self._stage
-                    )
-                )
+                    self._lambda_name,
+                    self._stage
+                ))
                 outfile.write('VERSION={}\n'.format(self._hash))
             return True
         except Exception as x:
