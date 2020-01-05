@@ -19,6 +19,7 @@ from lambdatool.cf_import_things import imported_sg_spec
 from lambdatool.cf_import_things import subnets_parameter_section
 from lambdatool.cf_import_things import subnets_parameter_spec
 from lambdatool.cf_import_things import imported_subnets_spec
+from lambdatool.cf_import_things import api_output_section
 from lambdatool.cf_import_things import output_section
 from lambdatool.cf_import_things import lambda_log_group
 
@@ -266,7 +267,14 @@ class TemplateCreator:
             logging.info('includeVpcConfig: %s', includeVpcConfig)
 
             if self._export_name:
-                output_section_bits = output_section.format(self._export_name, self._export_name)
+                if self._create_service:
+                    output_section_bits = api_output_section.format(
+                        self._export_name,
+                        self._export_name,
+                        self._export_name
+                    )
+                else:
+                    output_section_bits = output_section.format(self._export_name, self._export_name)
             else:
                 output_section_bits = ''
 

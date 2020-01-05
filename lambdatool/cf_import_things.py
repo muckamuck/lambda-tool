@@ -25,6 +25,28 @@ sg_parameter_section = """  securityGroupIds:
 sg_parameter_spec = 'Ref: securityGroupIds'
 imported_sg_spec = '- Fn::ImportValue: {}'
 
+api_output_section = '''Outputs:
+  LambdaFunction:
+    Description: The name of a LambdaTool function
+    Value:
+      Ref: LambdaFunction
+    Export:
+      Name: {}-Name
+  LambdaFunctionARN:
+    Description: The ARN of a LambdaTool function
+    Value:
+      Fn::GetAtt:
+        - LambdaFunction
+        - Arn
+    Export:
+      Name: {}-Arn
+  RestAPIid:
+    Description: The ID of the resulting RestAPI
+    Value:
+      Ref: theAPI
+    Export:
+      Name: {}-RestAPI'''
+
 output_section = '''Outputs:
   LambdaFunction:
     Description: The name of a LambdaTool function
