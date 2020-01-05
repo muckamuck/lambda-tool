@@ -24,7 +24,7 @@ lambdatool deploy. The lambda has been started in main.py.
 
 
 @click.group()
-@click.version_option(version='0.8.1')
+@click.version_option(version='0.8.2')
 def cli():
     pass
 
