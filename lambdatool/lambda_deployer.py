@@ -352,6 +352,7 @@ class LambdaDeployer:
             subnets = self._ini_data.get(self._stage, {}).get('subnets', None)
             sns_topic_arn = self._ini_data.get(self._stage, {}).get('snstopicarn', None)
             trusted_service = self._ini_data.get(self._stage, {}).get('trustedservice', None)
+            trusted_account = self._ini_data.get(self._stage, {}).get('trustedaccount', None)
             reserved_concurrency = self._ini_data.get(self._stage, {}).get('reservedconcurrency', None)
             lambda_schedule_expression = self._ini_data.get(self._stage, {}).get('scheduleexpression', None)
             service = self._ini_data.get(self._stage, {}).get('service', None)
@@ -386,6 +387,10 @@ class LambdaDeployer:
             if trusted_service:
                 logging.info('the lambda will trust: {}'.format(trusted_service))
                 wrk['trustedService'] = trusted_service
+
+            if trusted_account:
+                logging.info('the lambda will trust: {}'.format(trusted_account))
+                wrk['trustedAccount'] = trusted_account
 
             if reserved_concurrency:
                 logging.info('the lambda  will reserve {} invocations'.format(reserved_concurrency))

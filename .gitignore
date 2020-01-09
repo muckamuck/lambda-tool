@@ -1,3 +1,4 @@
+examples/
 .eggs/
 *egg-info/
 .ropeproject/

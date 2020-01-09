@@ -36,6 +36,7 @@ whitelist = 'whitelist'
 export_name = 'export_name'
 snsTopicARN = 'snstopicarn'
 trustedService = 'trustedservice'
+trustedAccount = 'trustedaccount'
 reservedConcurrency = 'reservedconcurrency'
 schedule = 'scheduleexpression'
 service = 'service'
@@ -48,6 +49,10 @@ sns_topic_arn = """  snsTopicARN:
 
 trusted_service = """  trustedService:
     Description: service which this lambda trusts
+    Type: String"""
+
+trusted_account = """  trustedAccount:
+    Description: account which this lambda trusts
     Type: String"""
 
 reserved_concurrency = """  reservedConcurrency:
@@ -76,7 +81,11 @@ sns_subcription_resource = """  TopicSubscription:
       Action: lambda:InvokeFunction
       Principal: sns.amazonaws.com"""
 
-trusted_service_resource = """  TrustedService:
+WITH_ACCOUNT = 'WITH_ACCOUNT'
+WITHOUT_ACCOUNT = 'WITHOUT_ACCOUNT'
+
+trusted_service_resource = dict()
+trusted_service_resource[WITHOUT_ACCOUNT] = """  TrustedService:
     Type: AWS::Lambda::Permission
     DependsOn: LambdaFunction
     Properties:
@@ -85,6 +94,18 @@ trusted_service_resource = """  TrustedService:
       Action: lambda:InvokeFunction
       Principal:
         Ref: trustedService"""
+
+trusted_service_resource[WITH_ACCOUNT] = """  TrustedService:
+    Type: AWS::Lambda::Permission
+    DependsOn: LambdaFunction
+    Properties:
+      FunctionName:
+        Fn::GetAtt: [LambdaFunction, Arn]
+      Action: lambda:InvokeFunction
+      Principal:
+        Ref: trustedService
+      SourceAccount:
+        Ref: trustedAccount"""
 
 reserved_concurrency_resource = '''      ReservedConcurrentExecutions:
         Ref: reservedConcurrency'''
@@ -125,6 +146,7 @@ class TemplateCreator:
     _template_file = None
     _sns_topic_arn_found = False
     _trusted_service_found = False
+    _trusted_account_found = False
     _reserved_concurrency_found = False
     _create_service = False
     _schedule_found = False
@@ -180,8 +202,12 @@ class TemplateCreator:
                 sns_resource_bits = ''
 
             if self._trusted_service_found:
-                trusted_service_var_bits = trusted_service
-                trusted_service_resource_bits = trusted_service_resource
+                if self._trusted_account_found:
+                    trusted_service_var_bits = trusted_service + new_line + trusted_account
+                    trusted_service_resource_bits = trusted_service_resource[WITH_ACCOUNT]
+                else:
+                    trusted_service_var_bits = trusted_service
+                    trusted_service_resource_bits = trusted_service_resource[WITHOUT_ACCOUNT]
             else:
                 trusted_service_var_bits = ''
                 trusted_service_resource_bits = ''
@@ -345,6 +371,9 @@ class TemplateCreator:
 
             if trustedService in lowered_stack_properties:
                 self._trusted_service_found = True
+
+            if trustedAccount in lowered_stack_properties:
+                self._trusted_account_found = True
 
             if reservedConcurrency in lowered_stack_properties:
                 self._reserved_concurrency_found = True
