@@ -104,6 +104,12 @@ def deploy(directory, stage, profile, region):
         sys.exit(1)
 
 
+@cli.command()
+@click.option('-s', '--stage', help='environment/stage of interest')
+def print_env(stage):
+    print(stage)
+
+
 def start_new_lambda(command_line):
     try:
         tool = LambdaCreator(command_line)
