@@ -10,6 +10,7 @@ import click
 import boto3
 import logging
 import sys
+import os
 import json
 
 default_stage = 'dev'
@@ -105,9 +106,17 @@ def deploy(directory, stage, profile, region):
 
 
 @cli.command()
-@click.option('-s', '--stage', help='environment/stage of interest')
+@click.option('-s', '--stage', help='environment/stage of interest', required=True)
 def print_env(stage):
-    print(stage)
+    config_file = f'config/{stage}/function.properties'
+    if os.path.isfile(config_file):
+        with open(config_file, 'r') as f:
+            tmp = f.readline()
+            while tmp:
+                food = tmp.strip()
+                print(f'export {food}')
+                tmp = f.readline()
+
 
 
 def start_new_lambda(command_line):
