@@ -19,7 +19,7 @@ def find_data(starting_dir, the_dir):
 
 setup(
     name='LambdaTool',
-    version='0.8.5',
+    version='0.8.6',
     packages=['lambdatool'],
     description='Python Lambda utility',
     author='Chuck Muckamuck',
