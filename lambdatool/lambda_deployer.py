@@ -121,9 +121,11 @@ class LambdaDeployer:
                 self._python = 'python3.7'
             elif v.minor == 8:
                 self._python = 'python3.8'
+            elif v.minor == 9:
+                self._python = 'python3.9'
             else:
                 logging.error('python %s.%s detected', v.major, v.minor)
-                logging.error('only python3.6, python3.7 and python3.8 are available')
+                logging.error('only python3.6, python3.7, python3.8 and python3.9 are available')
                 raise SystemError
         else:
             logging.error('strange python version')
