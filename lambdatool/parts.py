@@ -92,6 +92,8 @@ the_api = """  theAPI:
           Empty:
             type: "object"
             title: "Empty Schema"
+        x-amazon-apigateway-binary-media-types:
+        - "*/*"
   theDeployment:
     DependsOn: theAPI
     Properties:
