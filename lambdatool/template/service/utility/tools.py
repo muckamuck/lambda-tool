@@ -25,28 +25,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def get_object(bucket, key, s3_client):
-    '''
-    Put a blob of data into an S3 object
-
-    Args:
-        bucket - the S3 bucket to accecpt the data
-        key - the object key
-        s3_client - boto3 client to put the data
-
-    Returns:
-        the data in the S3 object
-    '''
-    try:
-        the_data = BytesIO(s3_client.get_object(Bucket=bucket, Key=key)["Body"].read())
-        logger.debug(type(the_data.getvalue()))
-        return the_data.getvalue()
-    except Exception as wtf:
-        logger.error(wtf, exc_info=True)
-
-    return None
-
-
 def add_cors(some_function):
     @wraps(some_function)
     def wrapper(*args, **kwargs):
