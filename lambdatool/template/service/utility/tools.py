@@ -1,5 +1,9 @@
 import sys
+import json
+import logging
+from io import BytesIO
 from functools import wraps
+
 try:
     from urllib import urlencode
 except ImportError:
@@ -16,6 +20,31 @@ except ImportError:
         from io import StringIO
 
 from werkzeug.wrappers import BaseRequest
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+
+def get_object(bucket, key, s3_client):
+    '''
+    Put a blob of data into an S3 object
+
+    Args:
+        bucket - the S3 bucket to accecpt the data
+        key - the object key
+        s3_client - boto3 client to put the data
+
+    Returns:
+        the data in the S3 object
+    '''
+    try:
+        the_data = BytesIO(s3_client.get_object(Bucket=bucket, Key=key)["Body"].read())
+        logger.debug(type(the_data.getvalue()))
+        return the_data.getvalue()
+    except Exception as wtf:
+        logger.error(wtf, exc_info=True)
+
+    return None
 
 
 def add_cors(some_function):
@@ -99,13 +128,30 @@ class FlaskLambda(Flask):
 
         response = Response()
 
-        body = next(self.wsgi_app(
+        encoded_body = next(self.wsgi_app(
             make_environ(event),
             response.start_response
-        )).decode('utf-8')
+        ))
 
-        return {
-            'statusCode': response.status,
-            'headers': response.response_headers,
-            'body': body
-        }
+        body = encoded_body.decode('utf-8')
+        logger.debug(f'{encoded_body=}')
+        logger.debug(f'{body=}')
+
+        content_type = response.response_headers.get('Content-Type')
+        if content_type.startswith('image'):
+            wrk = {
+                'statusCode': response.status,
+                'headers': response.response_headers,
+                'body': body,
+                'isBase64Encoded': True
+            }
+
+            the_answer = json.dumps(wrk)
+            logger.info(f'{the_answer=}')
+            return wrk
+        else:
+            return {
+                'statusCode': response.status,
+                'headers': response.response_headers,
+                'body': body
+            }
