@@ -436,7 +436,13 @@ class TemplateCreator:
             sideways.
         """
         try:
-            response = self._ssm.get_parameter(Name=p, WithDecryption=True)
+            if p.startswith(self.SSM) and p.endswith(']'):
+                parts = p.split(':')
+                p = parts[1].replace(']', '')
+            else:
+                return p
+
+            response = self._ssm_client.get_parameter(Name=p, WithDecryption=True)
             return response.get('Parameter', {}).get('Value', None)
         except Exception as ruh_roh:
             logging.error(ruh_roh, exc_info=False)
