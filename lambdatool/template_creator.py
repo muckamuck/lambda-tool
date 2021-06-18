@@ -435,8 +435,6 @@ class TemplateCreator:
             a value, decrypted if needed, if successful or None if things go
             sideways.
         """
-        val = None
-        secure_string = False
         try:
             if p.startswith(self.SSM) and p.endswith(']'):
                 parts = p.split(':')
@@ -444,23 +442,12 @@ class TemplateCreator:
             else:
                 return p
 
-            response = self._ssm_client.describe_parameters(
-                Filters=[{'Key': 'Name', 'Values': [p]}]
-            )
+            response = self._ssm_client.get_parameter(Name=p, WithDecryption=True)
+            return response.get('Parameter', {}).get('Value', None)
+        except Exception as ruh_roh:
+            logging.error(ruh_roh, exc_info=False)
 
-            if 'Parameters' in response:
-                t = response['Parameters'][0].get('Type', None)
-                if t == 'String':
-                    secure_string = False
-                elif t == 'SecureString':
-                    secure_string = True
-
-                response = self._ssm_client.get_parameter(Name=p, WithDecryption=secure_string)
-                val = response.get('Parameter', {}).get('Value', None)
-        except Exception as wtf:
-            logging.error('Exception caught in _get_ssm_parameter({}): {}'.format(p, wtf))
-
-        return val
+        return None
 
     def _find_imported_csv(self, raw_str):
         answer = None
