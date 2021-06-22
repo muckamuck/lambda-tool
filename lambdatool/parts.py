@@ -66,6 +66,7 @@ the_api = """  theAPI:
                 requestTemplates:
                   application/json: "{{\\"statusCode\\": 200}}"
                 passthroughBehavior: "when_no_match"
+                contentHandling: "CONVERT_TO_TEXT"
                 type: "mock"
             x-amazon-apigateway-any-method:
               produces:
