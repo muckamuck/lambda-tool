@@ -1,7 +1,7 @@
 {
     "note": "this file is used by LambdaTool - DO NOT REMOVE",
     "advice": "buy low, sell high",
-    "version": "0.9.3",
+    "version": "0.9.4",
     "createLogGroup": true,
     "type": "simple"
 }
