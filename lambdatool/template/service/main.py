@@ -1,4 +1,4 @@
-from utility import FlaskLambda
+from zevon import FlaskLambda
 from flask import request
 import json
 import os
