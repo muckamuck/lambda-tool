@@ -1,7 +1,8 @@
-from zevon import FlaskLambda
-from flask import request
-import json
 import os
+import json
+
+from flask import request
+from zevon import FlaskLambda
 
 '''
 The FlaskLambda object that is created is the entry point for the lambda. The
@@ -11,6 +12,24 @@ lambda_handler = FlaskLambda(__name__)
 
 
 @lambda_handler.route('/', methods=['GET'])
+def OK():
+    '''
+    Redirect to the README doc
+
+    Args:
+        None
+
+    Returns:
+        tuple of (body, status code, content type) that API Gateway understands
+    '''
+    return (
+        'OK',
+        200,
+        {'Content-Type': 'text/plain'}
+    )
+
+
+@lambda_handler.route('/doc', methods=['GET'])
 def document():
     '''
     Redirect to the README doc
@@ -39,14 +58,18 @@ def get_answer():
     Returns:
         tuple of (body, status code, content type) that API Gateway understands
     '''
+    answer = os.environ.get('ANSWER', '0')
+    args = json.dumps(request.args.copy(), indent=2)
+    msg = f'answer = {answer}  args = {args}'
+
     return (
-        os.environ.get('ANSWER', '0'),
+        msg,
         200,
-        {'Content-Type': 'text/html'}
+        {'Content-Type': 'text/plain'}
     )
 
 
-@lambda_handler.route('/food', methods=['GET', 'POST'])
+@lambda_handler.route('/example', methods=['GET', 'POST'])
 def food():
     '''
     A contrived example function that will return some meta-data about the
@@ -70,9 +93,6 @@ def food():
     )
 
 
-if __name__ == '__main__':
-    lambda_handler.run(debug=True)
-
 slash_html = '''<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>Lambtool Readme</title>
@@ -81,3 +101,6 @@ slash_html = '''<html xmlns="http://www.w3.org/1999/xhtml">
   <body></body>
 </html>
 '''
+
+if __name__ == '__main__':
+    lambda_handler.run(debug=True)

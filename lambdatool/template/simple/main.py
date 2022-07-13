@@ -21,7 +21,13 @@ def lambda_handler(event, context):
     Returns:
         Whatever you want
     '''
-    answer = os.environ.get('ANSWER', -1)
+    if context is not None:
+        logger.info(f'invoked_function_arn = {context.invoked_function_arn}')
+        logger.info(f'     log_stream_name = {context.log_stream_name}')
+        logger.info(f'      log_group_name = {context.log_group_name}')
+
     logger.info(json.dumps(event, default=date_converter))
+
+    answer = os.environ.get('ANSWER', -1)  # injected from the stage's functio.properties file
     logger.info('answer: %s', answer)
     return True

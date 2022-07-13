@@ -1,2 +1,1 @@
-Flask>=0.12
-zevon
+zevon>=0.3
