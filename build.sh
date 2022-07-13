@@ -3,7 +3,7 @@ set -e
 
 cd $(dirname ${0})
 
-pdb_count=$(find . -name "*.py" | xargs egrep '(import\s*pdb|set_trace)' | wc -l)
+pdb_count=$(find lambdatool -name "*.py" | xargs egrep '(import\s*pdb|set_trace)' | wc -l)
 
 if [ ${pdb_count} -gt 0 ]; then
     echo "Some PDB cruft was found"

@@ -1,4 +1,2 @@
-Stackility>=0.3
 bumpversion>=0.5
-pdbpp>=0.9
 twine
