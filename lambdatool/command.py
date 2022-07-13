@@ -118,7 +118,6 @@ def print_env(stage):
                 tmp = f.readline()
 
 
-
 def start_new_lambda(command_line):
     try:
         tool = LambdaCreator(command_line)
@@ -137,6 +136,8 @@ def start_new_lambda(command_line):
     else:
         logging.error('create_new_lambda() did not go well')
         sys.exit(1)
+
+    return True
 
 
 def deploy_lambda(command_line):
