@@ -37,6 +37,7 @@ logging.basicConfig(level=logging.INFO,
 logging.getLogger().setLevel(logging.INFO)
 
 
+MINOR_VERSIONS = [6, 7, 8, 9, 10]
 LAMBDATOOL_VERSION = '0.9.5'
 LAMBDATOOL_DESCRIPTOR = '.lambdatool'
 DEFAULT_DESCRIPTION = 'Fantastic Lambda Function'
@@ -115,17 +116,11 @@ class LambdaDeployer:
         if v.major == 2:
             self._python = 'python2.7'
         elif v.major == 3:
-            if v.minor == 6:
-                self._python = 'python3.6'
-            elif v.minor == 7:
-                self._python = 'python3.7'
-            elif v.minor == 8:
-                self._python = 'python3.8'
-            elif v.minor == 9:
-                self._python = 'python3.9'
+            if v.minor in MINOR_VERSIONS:
+                self._python = f'python3.{v.minor}'
             else:
                 logging.error('python %s.%s detected', v.major, v.minor)
-                logging.error('only python3.6, python3.7, python3.8 and python3.9 are available')
+                logging.error(f'supported Python3 minor versions: {MINOR_VERSIONS}')
                 raise SystemError
         else:
             logging.error('strange python version')
