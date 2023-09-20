@@ -37,7 +37,7 @@ logging.basicConfig(level=logging.INFO,
 logging.getLogger().setLevel(logging.INFO)
 
 
-MINOR_VERSIONS = [6, 7, 8, 9, 10]
+MINOR_VERSIONS = [6, 7, 8, 9, 10, 11]
 LAMBDATOOL_VERSION = '0.9.6'
 LAMBDATOOL_DESCRIPTOR = '.lambdatool'
 DEFAULT_DESCRIPTION = 'Fantastic Lambda Function'
