@@ -45,7 +45,8 @@ DEFAULT_MODULE_FILE = 'main.py'
 IGNORED_STUFF = ('config', '.git')
 PIP_ARGS = [
     'install',
-    '--platform manylinux2014_x86_64',
+    '--platform',
+    'manylinux2014_x86_64',
     '--only-binary=:all:',
     '-Ur',
     'requirements.txt',
