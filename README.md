@@ -2,7 +2,7 @@
 A tool to create and deploy Lambda Functions to AWS (for python things).
 
 
-## Current version - 0.9.7:
+## Current version - 0.9.8:
 
 * Create a new Python AWS Lambda from included template. Either a simple lambda function or a Flask based microservice.
 * Deploy AWS Lambda created with this tool. It generates a CloudFormation file and creates a stack from that template.
